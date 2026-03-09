@@ -1277,13 +1277,35 @@
         
         // 页面加载完成后初始化
         window.addEventListener('load', () => {
+            // 最长等待5秒后自动隐藏加载动画
             setTimeout(() => {
                 document.getElementById('loader').classList.add('hidden');
-            }, 1500);
+            }, 3000);
             
-            initEarth();
-            initCharts();
-            createParticles();
+            try {
+                initEarth();
+            } catch(e) {
+                console.log('Earth init failed:', e);
+                // 显示备用内容
+                document.getElementById('earth-container').innerHTML = 
+                    '<div style="display:flex;justify-content:center;align-items:center;height:100%;color:rgba(255,255,255,0.5);">' +
+                    '<div style="text-align:center;">' +
+                    '<div style="font-size:4rem;margin-bottom:20px;">🌍</div>' +
+                    '<div>全球视角 · 2026两会</div>' +
+                    '</div></div>';
+            }
+            
+            try {
+                initCharts();
+            } catch(e) {
+                console.log('Charts init failed:', e);
+            }
+            
+            try {
+                createParticles();
+            } catch(e) {
+                console.log('Particles init failed:', e);
+            }
         });
         
         // 平滑滚动
