@@ -281,6 +281,73 @@
         .icon {
             font-size: 1.2em;
         }
+        
+        /* 媒体报道样式 */
+        .media-section {
+            margin: 30px 0;
+        }
+        
+        .media-category {
+            margin-bottom: 30px;
+        }
+        
+        .media-category h3 {
+            color: #1a237e;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .media-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .media-list li {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .media-list li:hover {
+            background: #e8eaf6;
+            transform: translateX(5px);
+        }
+        
+        .media-list a {
+            color: #1a237e;
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+        }
+        
+        .media-list a:hover {
+            color: #667eea;
+        }
+        
+        .media-date {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .media-source {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
@@ -631,6 +698,157 @@
             <div class="data-source">
                 <strong>数据来源：</strong>2021-2026年政府工作报告、国家统计局国民经济和社会发展统计公报、"十五五"规划纲要<br>
                 <strong>分析说明：</strong>本报告基于官方公开数据整理分析，仅供参考学习使用
+            </div>
+        </div>
+
+        <!-- 权威媒体报道 -->
+        <div class="card">
+            <h2><span class="icon">📰</span> 权威媒体报道</h2>
+            <p style="color: #666; margin-bottom: 20px;">以下是新华社、人民日报、央视新闻等权威媒体关于2026年全国两会的重点报道，点击标题即可跳转阅读：</p>
+            
+            <div class="media-section">
+                <!-- 新华社 -->
+                <div class="media-category">
+                    <h3><span class="icon">📢</span> 新华社</h3>
+                    <ul class="media-list">
+                        <li>
+                            <a href="https://www.news.cn/politics/2026lh/" target="_blank">
+                                <span class="media-source">新华社</span>2026年全国两会专题
+                            </a>
+                            <div class="media-date">2026年3月 | 两会全程报道</div>
+                        </li>
+                        <li>
+                            <a href="https://www.news.cn/politics/20260309/5cd8c5ae45984f6299704b49f5b03da3/c.html" target="_blank">
+                                <span class="media-source">新华社</span>十四届全国人大四次会议举行第二次全体会议
+                            </a>
+                            <div class="media-date">2026年3月9日</div>
+                        </li>
+                        <li>
+                            <a href="https://www.news.cn/politics/20260309/1dd7350199c946c9b47d2219fae8b02e/c.html" target="_blank">
+                                <span class="media-source">新华社</span>十四届全国人大四次会议第二场"部长通道"集中采访活动举行
+                            </a>
+                            <div class="media-date">2026年3月9日</div>
+                        </li>
+                        <li>
+                            <a href="https://www.news.cn/politics/20260305/f4d6045629b0496487335d2727bcd139/c.html" target="_blank">
+                                <span class="media-source">新华社</span>《中华人民共和国国民经济和社会发展第十五个五年规划纲要（草案）》摘要
+                            </a>
+                            <div class="media-date">2026年3月5日</div>
+                        </li>
+                        <li>
+                            <a href="https://www.news.cn/politics/leaders/20260309/7024cbfdc6a744d5806ae69a63b5c485/c.html" target="_blank">
+                                <span class="media-source">新华社</span>两会近镜头丨总书记同代表委员话民生
+                            </a>
+                            <div class="media-date">2026年3月9日</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 人民日报 -->
+                <div class="media-category">
+                    <h3><span class="icon">📄</span> 人民日报/人民网</h3>
+                    <ul class="media-list">
+                        <li>
+                            <a href="http://lianghui.people.com.cn/2026/" target="_blank">
+                                <span class="media-source">人民网</span>2026年全国两会专题
+                            </a>
+                            <div class="media-date">2026年3月 | 两会全程报道</div>
+                        </li>
+                        <li>
+                            <a href="http://lianghui.people.com.cn/2026/n1/2026/0306/c461827-40675800.html" target="_blank">
+                                <span class="media-source">人民网</span>十四届全国人大四次会议在北京开幕
+                            </a>
+                            <div class="media-date">2026年3月6日</div>
+                        </li>
+                        <li>
+                            <a href="http://lianghui.people.com.cn/2026/n1/2026/0305/c461827-40674886.html" target="_blank">
+                                <span class="media-source">人民网</span>全国政协十四届四次会议在北京开幕
+                            </a>
+                            <div class="media-date">2026年3月5日</div>
+                        </li>
+                        <li>
+                            <a href="http://finance.people.com.cn/n1/2026/0309/c1004-40677764.html" target="_blank">
+                                <span class="media-source">人民网财经</span>两会财经眼：稳字当头 激活房地产市场新活力
+                            </a>
+                            <div class="media-date">2026年3月9日</div>
+                        </li>
+                        <li>
+                            <a href="http://finance.people.com.cn/n1/2026/0307/c1004-40676679.html" target="_blank">
+                                <span class="media-source">人民网财经</span>两会财经眼：政府工作报告中这些新提法关乎你我
+                            </a>
+                            <div class="media-date">2026年3月7日</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 央视新闻 -->
+                <div class="media-category">
+                    <h3><span class="icon">📺</span> 央视新闻/央视网</h3>
+                    <ul class="media-list">
+                        <li>
+                            <a href="https://news.cctv.com/2026/03/05/ARTILt3CEb8yYtPibx1C3m1w260305.shtml" target="_blank">
+                                <span class="media-source">央视新闻</span>一文速览政府工作报告
+                            </a>
+                            <div class="media-date">2026年3月5日</div>
+                        </li>
+                        <li>
+                            <a href="https://m.yunnan.cn/system/2026/03/09/033906178.shtml" target="_blank">
+                                <span class="media-source">央视网</span>聚焦两会 | 速览！2026年政府工作报告极简版来了
+                            </a>
+                            <div class="media-date">2026年3月9日</div>
+                        </li>
+                        <li>
+                            <a href="http://politics.people.com.cn/n1/2026/0309/c1001-40677941.html" target="_blank">
+                                <span class="media-source">人民网</span>两会财经眼：句句"粮"言，道出"国之大者"
+                            </a>
+                            <div class="media-date">2026年3月9日</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 政府工作报告全文 -->
+                <div class="media-category">
+                    <h3><span class="icon">📋</span> 政府工作报告全文</h3>
+                    <ul class="media-list">
+                        <li>
+                            <a href="https://www.gov.cn/premier/2026-03/05/content_7012722.htm" target="_blank">
+                                <span class="media-source">中国政府网</span>2026年政府工作报告（全文）
+                            </a>
+                            <div class="media-date">2026年3月5日 | 国务院官网</div>
+                        </li>
+                        <li>
+                            <a href="https://www.gov.cn/yaowen/liebiao/202503/content_7013166.htm" target="_blank">
+                                <span class="media-source">中国政府网</span>新华社受权播发《政府工作报告》
+                            </a>
+                            <div class="media-date">2026年3月12日</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 专题解读 -->
+                <div class="media-category">
+                    <h3><span class="icon">🔍</span> 深度解读</h3>
+                    <ul class="media-list">
+                        <li>
+                            <a href="http://opinion.people.com.cn/n1/2026/0309/c436867-40677752.html" target="_blank">
+                                <span class="media-source">人民网</span>读懂"智能经济新形态"这个新词后面的7句话
+                            </a>
+                            <div class="media-date">2026年3月9日 | 人民锐评</div>
+                        </li>
+                        <li>
+                            <a href="http://lianghui.people.com.cn/2026/n1/2026/0308/c461827-40677364.html" target="_blank">
+                                <span class="media-source">人民网</span>"十五五"规划纲要草案设置20项主要指标
+                            </a>
+                            <div class="media-date">2026年3月8日</div>
+                        </li>
+                        <li>
+                            <a href="https://www.news.cn/politics/20260308/4c412d774d124a1cb692ef1561da7f44/c.html" target="_blank">
+                                <span class="media-source">新华社</span>我在两会听信心丨锚定"十五五"，这些目标令人振奋
+                            </a>
+                            <div class="media-date">2026年3月8日</div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
