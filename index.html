@@ -4,140 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026全国两会 · 全球视野</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%);
             color: #fff;
-            overflow-x: hidden;
+            min-height: 100vh;
         }
-        
-        /* 加载动画 */
-        .loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-        
-        .loader.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .loader-text {
-            font-size: 2rem;
-            font-weight: 300;
-            letter-spacing: 0.5em;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-        
-        /* 导航栏 */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-        }
-        
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 40px;
-            list-style: none;
-        }
-        
-        .nav-links a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 0.9rem;
-            opacity: 0.7;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .nav-links a:hover {
-            opacity: 1;
-        }
-        
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transition: width 0.3s ease;
-        }
-        
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-        
-        /* Hero Section with 3D Earth */
         .hero {
-            position: relative;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
             overflow: hidden;
         }
-        
-        #earth-container {
+        .hero::before {
+            content: '🌍';
+            font-size: 200px;
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+            opacity: 0.1;
+            animation: rotate 60s linear infinite;
         }
-        
-        .hero-content {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            max-width: 800px;
-            padding: 0 20px;
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        
+        .hero-content { position: relative; z-index: 1; }
         .hero-subtitle {
             font-size: 1rem;
             letter-spacing: 0.3em;
@@ -145,1178 +43,261 @@
             opacity: 0.6;
             margin-bottom: 20px;
         }
-        
         .hero-title {
-            font-size: 4.5rem;
+            font-size: 3.5rem;
             font-weight: 900;
-            line-height: 1.1;
+            line-height: 1.2;
             margin-bottom: 30px;
             background: linear-gradient(135deg, #fff 0%, #a8b2ff 50%, #667eea 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
-        
         .hero-desc {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.8;
             line-height: 1.8;
+            max-width: 600px;
             margin-bottom: 40px;
         }
-        
-        .hero-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+        .btn {
+            display: inline-block;
             padding: 15px 40px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s;
         }
-        
-        .hero-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.6);
+        .btn:hover { transform: translateY(-3px); }
+        .section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        
-        .scroll-indicator {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-            40% { transform: translateX(-50%) translateY(-10px); }
-            60% { transform: translateX(-50%) translateY(-5px); }
-        }
-        
-        /* 地球说明 */
-        .earth-instruction {
-            position: absolute;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        /* 全球评价弹窗 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: linear-gradient(135deg, rgba(30,30,50,0.95) 0%, rgba(20,20,40,0.98) 100%);
-            border-radius: 20px;
-            max-width: 700px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            box-shadow: 0 25px 80px rgba(0,0,0,0.5);
-        }
-        
-        .modal-header {
-            padding: 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .country-flag {
-            font-size: 2rem;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 2rem;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.3s;
-        }
-        
-        .modal-close:hover {
-            opacity: 1;
-        }
-        
-        .modal-body {
-            padding: 30px;
-        }
-        
-        .news-item {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            border-left: 3px solid #667eea;
-            transition: all 0.3s ease;
-        }
-        
-        .news-item:hover {
-            background: rgba(255,255,255,0.08);
-            transform: translateX(5px);
-        }
-        
-        .news-source {
-            font-size: 0.8rem;
-            color: #667eea;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .news-title {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            line-height: 1.5;
-        }
-        
-        .news-excerpt {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            line-height: 1.6;
-        }
-        
-        .news-date {
-            font-size: 0.8rem;
-            opacity: 0.5;
-            margin-top: 10px;
-        }
-        
-        /* 数据展示区域 */
-        .stats-section {
-            padding: 100px 50px;
-            background: linear-gradient(180deg, #000 0%, #0a0a1a 100%);
-        }
-        
         .section-title {
-            text-align: center;
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 20px;
+            text-align: center;
+            margin-bottom: 50px;
             background: linear-gradient(135deg, #fff 0%, #a8b2ff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.1rem;
-            opacity: 0.6;
-            margin-bottom: 60px;
-        }
-        
-        .stats-grid {
+        .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
         }
-        
-        .stat-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        .card {
+            background: rgba(102, 126, 234, 0.1);
             border: 1px solid rgba(102, 126, 234, 0.2);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s;
         }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-        
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-        
-        .stat-card:hover {
+        .card:hover {
             transform: translateY(-10px);
             border-color: rgba(102, 126, 234, 0.5);
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
         }
-        
-        .stat-number {
-            font-size: 4rem;
+        .card-number {
+            font-size: 3rem;
             font-weight: 900;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
         }
-        
-        .stat-label {
-            font-size: 1.1rem;
-            opacity: 0.8;
-        }
-        
-        /* 图表区域 */
-        .charts-section {
-            padding: 100px 50px;
-            background: #0a0a1a;
-        }
-        
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 40px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .chart-card {
-            background: rgba(255,255,255,0.03);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .chart-title {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-        
         .chart-container {
-            height: 350px;
+            height: 400px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            padding: 20px;
         }
-        
-        /* 媒体报道区域 */
-        .media-section {
-            padding: 100px 50px;
-            background: linear-gradient(180deg, #0a0a1a 0%, #000 100%);
-        }
-        
         .media-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            max-width: 1400px;
-            margin: 0 auto;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
-        
         .media-card {
-            background: linear-gradient(135deg, rgba(30,30,50,0.8) 0%, rgba(20,20,40,0.9) 100%);
+            background: rgba(255,255,255,0.03);
             border-radius: 16px;
-            padding: 30px;
+            padding: 25px;
             border: 1px solid rgba(102, 126, 234, 0.2);
-            transition: all 0.3s ease;
         }
-        
-        .media-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(102, 126, 234, 0.5);
+        .media-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
         }
-        
-        .media-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .media-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-        
-        .media-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-        
-        .media-list {
-            list-style: none;
-        }
-        
-        .media-list li {
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .media-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .media-list a {
+        .media-card a {
             color: #fff;
             text-decoration: none;
-            opacity: 0.8;
-            transition: opacity 0.3s;
             display: block;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: color 0.3s;
         }
-        
-        .media-list a:hover {
-            opacity: 1;
-            color: #667eea;
-        }
-        
-        .media-date {
-            font-size: 0.8rem;
-            opacity: 0.5;
-            margin-top: 5px;
-        }
-        
-        /* Footer */
-        footer {
-            padding: 60px 50px;
-            background: #000;
-            border-top: 1px solid rgba(255,255,255,0.05);
+        .media-card a:hover { color: #667eea; }
+        .footer {
             text-align: center;
-        }
-        
-        .footer-logo {
-            font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
-        }
-        
-        .footer-text {
-            opacity: 0.6;
+            padding: 40px;
+            opacity: 0.5;
             font-size: 0.9rem;
         }
-        
-        /* 响应式 */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2.5rem;
-            }
-            
-            .nav-links {
-                display: none;
-            }
-            
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .chart-container {
-                height: 250px;
-            }
-        }
-        
-        /* 粒子效果 */
-        .particles {
+        nav {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            z-index: 100;
         }
-        
-        .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: rgba(102, 126, 234, 0.5);
-            border-radius: 50%;
-            animation: float 20s infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100vh) rotate(720deg);
-                opacity: 0;
-            }
+        .logo { font-weight: 700; color: #667eea; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a { color: #fff; text-decoration: none; opacity: 0.7; }
+        .nav-links a:hover { opacity: 1; }
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
 <body>
-    <!-- 加载动画 -->
-    <div class="loader" id="loader">
-        <div class="loader-text">2026 全国两会</div>
-    </div>
-    
-    <!-- 粒子背景 -->
-    <div class="particles" id="particles"></div>
-    
-    <!-- 导航 -->
     <nav>
         <div class="logo">两会·全球视野</div>
         <ul class="nav-links">
-            <li><a href="#globe">全球视角</a></li>
-            <li><a href="#stats">核心数据</a></li>
-            <li><a href="#charts">趋势分析</a></li>
-            <li><a href="#media">权威报道</a></li>
+            <li><a href="#stats">数据</a></li>
+            <li><a href="#charts">图表</a></li>
+            <li><a href="#media">报道</a></li>
         </ul>
     </nav>
-    
-    <!-- Hero Section with 3D Earth -->
-    <section class="hero" id="globe">
-        <div id="earth-container"></div>
+
+    <section class="hero">
         <div class="hero-content">
-            <div class="hero-subtitle">Global Perspective</div>
+            <div class="hero-subtitle">Global Perspective 2026</div>
             <h1 class="hero-title">2026全国两会<br>世界在看</h1>
             <p class="hero-desc">
                 "十五五"开局之年，全球目光聚焦中国。<br>
-                点击旋转的地球，探索世界各国通讯社对两会的报道与评价。
+                探索世界各国对两会的报道与评价。
             </p>
-            <a href="#stats" class="hero-cta">
-                探索数据
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-            </a>
-        </div>
-        <div class="earth-instruction">
-            🌍 拖动旋转地球 · 点击光点查看各国报道
-        </div>
-        <div class="scroll-indicator">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" opacity="0.6">
-                <path d="M12 5v14M19 12l-7 7-7-7"/>
-            </svg>
+            <a href="#stats" class="btn">探索数据 →</a>
         </div>
     </section>
-    
-    <!-- 全球评价弹窗 -->
-    <div class="modal" id="newsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <span class="country-flag" id="modalFlag">🇨🇳</span>
-                    <span id="modalCountry">中国</span>
-                </div>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- 动态内容 -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- 核心数据 -->
-    <section class="stats-section" id="stats">
+
+    <section class="section" id="stats">
         <h2 class="section-title">核心数据</h2>
-        <p class="section-subtitle">2025年经济社会发展主要成就</p>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">140.19</div>
-                <div class="stat-label">GDP总量（万亿元）</div>
+        <div class="cards">
+            <div class="card">
+                <div class="card-number">140.19</div>
+                <div>GDP总量（万亿元）</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">5.0%</div>
-                <div class="stat-label">GDP增长率</div>
+            <div class="card">
+                <div class="card-number">5.0%</div>
+                <div>GDP增长率</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">1267</div>
-                <div class="stat-label">城镇新增就业（万人）</div>
+            <div class="card">
+                <div class="card-number">1267</div>
+                <div>城镇新增就业（万人）</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">1.43</div>
-                <div class="stat-label">粮食产量（万亿斤）</div>
+            <div class="card">
+                <div class="card-number">1.43</div>
+                <div>粮食产量（万亿斤）</div>
             </div>
         </div>
     </section>
-    
-    <!-- 图表分析 -->
-    <section class="charts-section" id="charts">
+
+    <section class="section" id="charts">
         <h2 class="section-title">趋势洞察</h2>
-        <p class="section-subtitle">近五年经济发展轨迹</p>
-        <div class="charts-grid">
-            <div class="chart-card">
-                <h3 class="chart-title">GDP增长趋势</h3>
-                <div id="gdpChart" class="chart-container"></div>
-            </div>
-            <div class="chart-card">
-                <h3 class="chart-title">就业与民生</h3>
-                <div id="employmentChart" class="chart-container"></div>
-            </div>
-        </div>
+        <div class="chart-container" id="gdpChart"></div>
     </section>
-    
-    <!-- 媒体报道 -->
-    <section class="media-section" id="media">
+
+    <section class="section" id="media">
         <h2 class="section-title">权威报道</h2>
-        <p class="section-subtitle">国内外主流媒体深度解读</p>
         <div class="media-grid">
             <div class="media-card">
-                <div class="media-header">
-                    <div class="media-icon">📢</div>
-                    <div class="media-name">新华社</div>
-                </div>
-                <ul class="media-list">
-                    <li>
-                        <a href="https://www.news.cn/politics/2026lh/" target="_blank">2026年全国两会专题</a>
-                        <div class="media-date">全程报道</div>
-                    </li>
-                    <li>
-                        <a href="https://www.news.cn/politics/20260309/5cd8c5ae45984f6299704b49f5b03da3/c.html" target="_blank">十四届全国人大四次会议举行第二次全体会议</a>
-                        <div class="media-date">2026.03.09</div>
-                    </li>
-                    <li>
-                        <a href="https://www.news.cn/politics/20260305/f4d6045629b0496487335d2727bcd139/c.html" target="_blank">"十五五"规划纲要（草案）摘要</a>
-                        <div class="media-date">2026.03.05</div>
-                    </li>
-                </ul>
+                <h3>🇨🇳 新华社</h3>
+                <a href="https://www.news.cn/politics/2026lh/" target="_blank">2026年全国两会专题</a>
+                <a href="https://www.news.cn/politics/20260309/5cd8c5ae45984f6299704b49f5b03da3/c.html" target="_blank">人大四次会议第二次全体会议</a>
+                <a href="https://www.news.cn/politics/20260305/f4d6045629b0496487335d2727bcd139/c.html" target="_blank">"十五五"规划纲要（草案）摘要</a>
             </div>
             <div class="media-card">
-                <div class="media-header">
-                    <div class="media-icon">📄</div>
-                    <div class="media-name">人民日报</div>
-                </div>
-                <ul class="media-list">
-                    <li>
-                        <a href="http://lianghui.people.com.cn/2026/" target="_blank">2026年全国两会专题</a>
-                        <div class="media-date">全程报道</div>
-                    </li>
-                    <li>
-                        <a href="http://lianghui.people.com.cn/2026/n1/2026/0306/c461827-40675800.html" target="_blank">十四届全国人大四次会议开幕</a>
-                        <div class="media-date">2026.03.06</div>
-                    </li>
-                    <li>
-                        <a href="http://finance.people.com.cn/n1/2026/0309/c1004-40677764.html" target="_blank">两会财经眼：激活房地产市场新活力</a>
-                        <div class="media-date">2026.03.09</div>
-                    </li>
-                </ul>
+                <h3>📄 人民日报</h3>
+                <a href="http://lianghui.people.com.cn/2026/" target="_blank">2026年全国两会专题</a>
+                <a href="http://lianghui.people.com.cn/2026/n1/2026/0306/c461827-40675800.html" target="_blank">人大四次会议开幕</a>
+                <a href="http://finance.people.com.cn/n1/2026/0309/c1004-40677764.html" target="_blank">两会财经眼：激活房地产市场</a>
             </div>
             <div class="media-card">
-                <div class="media-header">
-                    <div class="media-icon">📺</div>
-                    <div class="media-name">央视新闻</div>
-                </div>
-                <ul class="media-list">
-                    <li>
-                        <a href="https://news.cctv.com/2026/03/05/ARTILt3CEb8yYtPibx1C3m1w260305.shtml" target="_blank">一文速览政府工作报告</a>
-                        <div class="media-date">2026.03.05</div>
-                    </li>
-                    <li>
-                        <a href="http://v.people.cn/n1/2026/0305/c461697-40675705.html" target="_blank">小经跑两会：开启"十五五"</a>
-                        <div class="media-date">2026.03.05</div>
-                    </li>
-                    <li>
-                        <a href="https://liuyan.people.com.cn/GB/178291/218130/461628/461640/index.html" target="_blank">我给两会捎句话</a>
-                        <div class="media-date">建言征集</div>
-                    </li>
-                </ul>
+                <h3>📺 央视新闻</h3>
+                <a href="https://news.cctv.com/2026/03/05/ARTILt3CEb8yYtPibx1C3m1w260305.shtml" target="_blank">一文速览政府工作报告</a>
+                <a href="https://liuyan.people.com.cn/GB/178291/218130/461628/461640/index.html" target="_blank">我给两会捎句话</a>
             </div>
             <div class="media-card">
-                <div class="media-header">
-                    <div class="media-icon">🌐</div>
-                    <div class="media-name">国际媒体</div>
-                </div>
-                <ul class="media-list">
-                    <li>
-                        <a href="https://english.news.cn/special/2026lh/index.html" target="_blank">Xinhua: China's Two Sessions 2026</a>
-                        <div class="media-date">English Coverage</div>
-                    </li>
-                    <li>
-                        <a href="https://en.people.cn/n3/2026/0309/c90000-20433601.html" target="_blank">People's Daily: China's national legislature holds second plenary meeting</a>
-                        <div class="media-date">2026.03.09</div>
-                    </li>
-                    <li>
-                        <a href="https://news.cri.cn/20260305/446322b9-af4b-4f49-b3b1-d05d459efe3b.html" target="_blank">CRI: 世界看两会丨中国高质量发展成就令人瞩目</a>
-                        <div class="media-date">2026.03.05</div>
-                    </li>
-                </ul>
+                <h3>🌐 国际媒体</h3>
+                <a href="https://english.news.cn/special/2026lh/index.html" target="_blank">Xinhua: China's Two Sessions 2026</a>
+                <a href="https://en.people.cn/n3/2026/0309/c90000-20433601.html" target="_blank">People's Daily: Second plenary meeting</a>
+                <a href="https://news.cri.cn/20260305/446322b9-af4b-4f49-b3b1-d05d459efe3b.html" target="_blank">CRI: 世界看两会</a>
             </div>
         </div>
     </section>
-    
-    <!-- Footer -->
-    <footer>
-        <div class="footer-logo">2026 全国两会 · 全球视野</div>
-        <p class="footer-text">数据来源：新华社、人民日报、国家统计局 | 制作时间：2026年3月</p>
+
+    <footer class="footer">
+        数据来源：新华社、人民日报、国家统计局 | 制作时间：2026年3月
     </footer>
 
     <script>
-        // 各国媒体报道数据
-        const countryNews = {
-            china: {
-                flag: '🇨🇳',
-                name: '中国',
-                news: [
-                    {
-                        source: '新华社',
-                        title: '十四届全国人大四次会议举行第二次全体会议',
-                        excerpt: '十四届全国人大四次会议3月9日上午在北京人民大会堂举行第二次全体会议，听取和审议全国人大常委会工作报告和最高人民法院工作报告、最高人民检察院工作报告。',
-                        date: '2026年3月9日'
-                    },
-                    {
-                        source: '人民日报',
-                        title: '政府工作报告极简版来了！不到1000字',
-                        excerpt: '3月5日，李强总理向十四届全国人大四次会议作政府工作报告，要点包括2025年工作回顾、十四五五年发展成就、十五五时期主要目标和重大任务等。',
-                        date: '2026年3月5日'
-                    },
-                    {
-                        source: '央视新闻',
-                        title: '一文速览2026年政府工作报告',
-                        excerpt: '2026年发展主要预期目标：经济增长4.5%—5%，城镇新增就业1200万人以上，居民消费价格涨幅2%左右，粮食产量1.4万亿斤左右。',
-                        date: '2026年3月5日'
-                    }
-                ]
+        // GDP图表
+        const gdpChart = echarts.init(document.getElementById('gdpChart'));
+        gdpChart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(30,30,50,0.9)',
+                borderColor: '#667eea',
+                textStyle: { color: '#fff' }
             },
-            usa: {
-                flag: '🇺🇸',
-                name: '美国',
-                news: [
-                    {
-                        source: 'Reuters',
-                        title: 'China sets GDP growth target of around 5% for 2026',
-                        excerpt: 'China has set its economic growth target at around 5% for 2026, with policymakers emphasizing high-quality development and technological innovation.',
-                        date: 'March 5, 2026'
-                    },
-                    {
-                        source: 'Bloomberg',
-                        title: 'China\\'s Two Sessions: Key Takeaways from the Government Work Report',
-                        excerpt: 'The 2026 Government Work Report highlights China\\'s focus on new quality productive forces, domestic consumption, and green transition.',
-                        date: 'March 6, 2026'
-                    }
-                ]
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                data: ['2021', '2022', '2023', '2024', '2025'],
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
+                axisLabel: { color: 'rgba(255,255,255,0.7)' }
             },
-            uk: {
-                flag: '🇬🇧',
-                name: '英国',
-                news: [
-                    {
-                        source: 'BBC',
-                        title: 'China\\'s Two Sessions: What to watch in 2026',
-                        excerpt: 'The annual meetings of China\\'s National People\\'s Congress and the Chinese People\\'s Political Consultative Conference are taking place in Beijing.',
-                        date: 'March 4, 2026'
-                    },
-                    {
-                        source: 'Financial Times',
-                        title: 'China targets technological self-reliance at Two Sessions',
-                        excerpt: 'Beijing emphasizes innovation and domestic consumption as it unveils its 2026 economic roadmap.',
-                        date: 'March 5, 2026'
-                    }
-                ]
+            yAxis: {
+                type: 'value',
+                name: '万亿元',
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
+                axisLabel: { color: 'rgba(255,255,255,0.7)' },
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
             },
-            japan: {
-                flag: '🇯🇵',
-                name: '日本',
-                news: [
-                    {
-                        source: 'NHK',
-                        title: '中国全人代が開幕 2026年成長目標を発表',
-                        excerpt: '中国の全国人民代表大会が開幕し、2026年の経済成長目標を発表しました。新質生産力の発展や技術革新が重視されています。',
-                        date: '2026年3月5日'
-                    },
-                    {
-                        source: '朝日新聞',
-                        title: '中国両会：15次五カ年計画の重要性',
-                        excerpt: '2026年は第15次五カ年計画の初年度であり、中国の今後の発展方針が注目されます。',
-                        date: '2026年3月6日'
+            series: [{
+                data: [114.9, 121.0, 126.0, 134.9, 140.19],
+                type: 'line',
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 10,
+                lineStyle: { color: '#667eea', width: 3 },
+                itemStyle: { color: '#667eea' },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(102, 126, 234, 0.5)' },
+                            { offset: 1, color: 'rgba(102, 126, 234, 0)' }
+                        ]
                     }
-                ]
-            },
-            germany: {
-                flag: '🇩🇪',
-                name: '德国',
-                news: [
-                    {
-                        source: 'Deutsche Welle',
-                        title: 'Chinas "Zwei Sessions": Fokus auf technologische Unabhängigkeit',
-                        excerpt: 'Die jährlichen Treffen des Nationalen Volkskongresses stehen unter dem Zeichen der technologischen Innovation und grünen Transformation.',
-                        date: '5. März 2026'
-                    }
-                ]
-            },
-            russia: {
-                flag: '🇷🇺',
-                name: '俄罗斯',
-                news: [
-                    {
-                        source: 'РИА Новости',
-                        title: 'В Китае открылась сессия ВСНП',
-                        excerpt: 'В Пекине открылась вторая сессия Всекитайского собрания народных представителей 14-го созыва.',
-                        date: '5 марта 2026'
-                    }
-                ]
-            },
-            france: {
-                flag: '🇫🇷',
-                name: '法国',
-                news: [
-                    {
-                        source: 'Le Monde',
-                        title: 'Chine : les Deux Sessions marquent le début du 15e Plan quinquennal',
-                        excerpt: 'Le gouvernement chinois présente ses objectifs économiques pour 2026, avec un accent sur l\'innovation technologique.',
-                        date: '5 mars 2026'
-                    }
-                ]
-            },
-            singapore: {
-                flag: '🇸🇬',
-                name: '新加坡',
-                news: [
-                    {
-                        source: 'Channel NewsAsia',
-                        title: 'China\\'s Two Sessions 2026: Key economic targets unveiled',
-                        excerpt: 'China has unveiled its economic roadmap for 2026, setting a GDP growth target of 4.5% to 5%.',
-                        date: 'March 5, 2026'
-                    }
-                ]
-            }
-        };
-
-        // Three.js 地球初始化
-        function initEarth() {
-            const container = document.getElementById('earth-container');
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(renderer.domElement);
-            
-            // 地球几何体
-            const geometry = new THREE.SphereGeometry(5, 64, 64);
-            
-            // 地球材质 - 使用程序生成的纹理
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            
-            // 绘制地球纹理
-            const gradient = ctx.createLinearGradient(0, 0, 0, 512);
-            gradient.addColorStop(0, '#1a237e');
-            gradient.addColorStop(0.5, '#0d47a1');
-            gradient.addColorStop(1, '#1a237e');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 1024, 512);
-            
-            // 绘制大陆轮廓（简化版）
-            ctx.fillStyle = '#2e7d32';
-            for (let i = 0; i < 50; i++) {
-                const x = Math.random() * 1024;
-                const y = Math.random() * 512;
-                const size = Math.random() * 100 + 50;
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            const material = new THREE.MeshPhongMaterial({
-                map: texture,
-                emissive: 0x112244,
-                emissiveIntensity: 0.2,
-                shininess: 25
-            });
-            
-            const earth = new THREE.Mesh(geometry, material);
-            scene.add(earth);
-            
-            // 大气层
-            const atmosphereGeometry = new THREE.SphereGeometry(5.2, 64, 64);
-            const atmosphereMaterial = new THREE.MeshPhongMaterial({
-                color: 0x667eea,
-                transparent: true,
-                opacity: 0.15,
-                side: THREE.BackSide
-            });
-            const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-            scene.add(atmosphere);
-            
-            // 星星背景
-            const starsGeometry = new THREE.BufferGeometry();
-            const starsCount = 2000;
-            const posArray = new Float32Array(starsCount * 3);
-            
-            for (let i = 0; i < starsCount * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 100;
-            }
-            
-            starsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const starsMaterial = new THREE.PointsMaterial({
-                size: 0.05,
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.8
-            });
-            const stars = new THREE.Points(starsGeometry, starsMaterial);
-            scene.add(stars);
-            
-            // 在地球上标记各国位置
-            const markers = [
-                { country: 'china', lat: 35, lon: 105 },
-                { country: 'usa', lat: 40, lon: -100 },
-                { country: 'uk', lat: 54, lon: -2 },
-                { country: 'japan', lat: 36, lon: 138 },
-                { country: 'germany', lat: 51, lon: 10 },
-                { country: 'russia', lat: 60, lon: 90 },
-                { country: 'france', lat: 46, lon: 2 },
-                { country: 'singapore', lat: 1, lon: 104 }
-            ];
-            
-            const markerMeshes = [];
-            
-            markers.forEach(marker => {
-                const phi = (90 - marker.lat) * Math.PI / 180;
-                const theta = (marker.lon + 180) * Math.PI / 180;
-                
-                const x = -5.1 * Math.sin(phi) * Math.cos(theta);
-                const y = 5.1 * Math.cos(phi);
-                const z = 5.1 * Math.sin(phi) * Math.sin(theta);
-                
-                // 标记点
-                const markerGeometry = new THREE.SphereGeometry(0.15, 16, 16);
-                const markerMaterial = new THREE.MeshBasicMaterial({
-                    color: 0x667eea,
-                    emissive: 0x667eea,
-                    emissiveIntensity: 0.5
-                });
-                const markerMesh = new THREE.Mesh(markerGeometry, markerMaterial);
-                markerMesh.position.set(x, y, z);
-                markerMesh.userData = { country: marker.country };
-                earth.add(markerMesh);
-                markerMeshes.push(markerMesh);
-                
-                // 标记光环
-                const ringGeometry = new THREE.RingGeometry(0.2, 0.25, 32);
-                const ringMaterial = new THREE.MeshBasicMaterial({
-                    color: 0x667eea,
-                    transparent: true,
-                    opacity: 0.5,
-                    side: THREE.DoubleSide
-                });
-                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-                ring.position.set(x * 1.02, y * 1.02, z * 1.02);
-                ring.lookAt(new THREE.Vector3(x * 2, y * 2, z * 2));
-                earth.add(ring);
-            });
-            
-            // 光照
-            const ambientLight = new THREE.AmbientLight(0x333333);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(10, 10, 10);
-            scene.add(directionalLight);
-            
-            const pointLight = new THREE.PointLight(0x667eea, 0.5);
-            pointLight.position.set(-10, 5, 10);
-            scene.add(pointLight);
-            
-            camera.position.z = 15;
-            
-            // 鼠标控制
-            let isDragging = false;
-            let previousMousePosition = { x: 0, y: 0 };
-            let rotationSpeed = 0.001;
-            
-            // 自动旋转
-            function autoRotate() {
-                if (!isDragging) {
-                    earth.rotation.y += rotationSpeed;
                 }
-            }
-            
-            // 鼠标事件
-            container.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            });
-            
-            container.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    const deltaX = e.clientX - previousMousePosition.x;
-                    const deltaY = e.clientY - previousMousePosition.y;
-                    
-                    earth.rotation.y += deltaX * 0.005;
-                    earth.rotation.x += deltaY * 0.005;
-                    
-                    previousMousePosition = { x: e.clientX, y: e.clientY };
-                }
-            });
-            
-            container.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-            
-            // 点击事件 - 检测点击了哪个国家
-            container.addEventListener('click', (e) => {
-                if (isDragging) return;
-                
-                const raycaster = new THREE.Raycaster();
-                const mouse = new THREE.Vector2();
-                
-                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-                
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(markerMeshes);
-                
-                if (intersects.length > 0) {
-                    const country = intersects[0].object.userData.country;
-                    showModal(country);
-                }
-            });
-            
-            // 动画循环
-            function animate() {
-                requestAnimationFrame(animate);
-                autoRotate();
-                renderer.render(scene, camera);
-            }
-            
-            animate();
-            
-            // 响应式
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }
-        
-        // 显示弹窗
-        function showModal(country) {
-            const data = countryNews[country];
-            if (!data) return;
-            
-            document.getElementById('modalFlag').textContent = data.flag;
-            document.getElementById('modalCountry').textContent = data.name;
-            
-            const modalBody = document.getElementById('modalBody');
-            modalBody.innerHTML = data.news.map(item => `
-                <div class="news-item">
-                    <div class="news-source">${item.source}</div>
-                    <div class="news-title">${item.title}</div>
-                    <div class="news-excerpt">${item.excerpt}</div>
-                    <div class="news-date">${item.date}</div>
-                </div>
-            `).join('');
-            
-            document.getElementById('newsModal').classList.add('active');
-        }
-        
-        // 关闭弹窗
-        function closeModal() {
-            document.getElementById('newsModal').classList.remove('active');
-        }
-        
-        // 点击弹窗外部关闭
-        document.getElementById('newsModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('newsModal')) {
-                closeModal();
-            }
+            }]
         });
         
-        // 初始化图表
-        function initCharts() {
-            // GDP图表
-            const gdpChart = echarts.init(document.getElementById('gdpChart'));
-            gdpChart.setOption({
-                backgroundColor: 'transparent',
-                tooltip: {
-                    trigger: 'axis',
-                    backgroundColor: 'rgba(30,30,50,0.9)',
-                    borderColor: '#667eea',
-                    textStyle: { color: '#fff' }
-                },
-                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    data: ['2021', '2022', '2023', '2024', '2025'],
-                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
-                    axisLabel: { color: 'rgba(255,255,255,0.7)' }
-                },
-                yAxis: {
-                    type: 'value',
-                    name: '万亿元',
-                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
-                    axisLabel: { color: 'rgba(255,255,255,0.7)' },
-                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
-                },
-                series: [{
-                    data: [114.9, 121.0, 126.0, 134.9, 140.19],
-                    type: 'line',
-                    smooth: true,
-                    symbol: 'circle',
-                    symbolSize: 10,
-                    lineStyle: { color: '#667eea', width: 3 },
-                    itemStyle: { color: '#667eea' },
-                    areaStyle: {
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: 'rgba(102, 126, 234, 0.5)' },
-                                { offset: 1, color: 'rgba(102, 126, 234, 0)' }
-                            ]
-                        }
-                    }
-                }]
-            });
-            
-            // 就业图表
-            const employmentChart = echarts.init(document.getElementById('employmentChart'));
-            employmentChart.setOption({
-                backgroundColor: 'transparent',
-                tooltip: {
-                    trigger: 'axis',
-                    backgroundColor: 'rgba(30,30,50,0.9)',
-                    borderColor: '#764ba2',
-                    textStyle: { color: '#fff' }
-                },
-                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    data: ['2021', '2022', '2023', '2024', '2025'],
-                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
-                    axisLabel: { color: 'rgba(255,255,255,0.7)' }
-                },
-                yAxis: {
-                    type: 'value',
-                    name: '万人',
-                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
-                    axisLabel: { color: 'rgba(255,255,255,0.7)' },
-                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
-                },
-                series: [{
-                    data: [1269, 1206, 1244, 1256, 1267],
-                    type: 'bar',
-                    barWidth: '40%',
-                    itemStyle: {
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: '#764ba2' },
-                                { offset: 1, color: '#667eea' }
-                            ]
-                        },
-                        borderRadius: [10, 10, 0, 0]
-                    }
-                }]
-            });
-            
-            // 响应式
-            window.addEventListener('resize', () => {
-                gdpChart.resize();
-                employmentChart.resize();
-            });
-        }
-        
-        // 创建粒子效果
-        function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 50; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                container.appendChild(particle);
-            }
-        }
-        
-        // 页面加载完成后初始化
-        window.addEventListener('load', () => {
-            // 最长等待5秒后自动隐藏加载动画
-            setTimeout(() => {
-                document.getElementById('loader').classList.add('hidden');
-            }, 3000);
-            
-            try {
-                initEarth();
-            } catch(e) {
-                console.log('Earth init failed:', e);
-                // 显示备用内容
-                document.getElementById('earth-container').innerHTML = 
-                    '<div style="display:flex;justify-content:center;align-items:center;height:100%;color:rgba(255,255,255,0.5);">' +
-                    '<div style="text-align:center;">' +
-                    '<div style="font-size:4rem;margin-bottom:20px;">🌍</div>' +
-                    '<div>全球视角 · 2026两会</div>' +
-                    '</div></div>';
-            }
-            
-            try {
-                initCharts();
-            } catch(e) {
-                console.log('Charts init failed:', e);
-            }
-            
-            try {
-                createParticles();
-            } catch(e) {
-                console.log('Particles init failed:', e);
-            }
-        });
-        
-        // 平滑滚动
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
+        window.addEventListener('resize', () => gdpChart.resize());
     </script>
 </body>
 </html>
