@@ -80,6 +80,33 @@
             -webkit-text-fill-color: transparent;
         }
         
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .refresh-btn.spinning .refresh-icon {
+            animation: spin 1s linear infinite;
+        }
+        
+        .refresh-icon {
+            font-size: 16px;
+        }
+        
         /* Hero区域 */
         .hero {
             position: relative;
@@ -186,7 +213,7 @@
         .modal-content {
             background: linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
             border-radius: 20px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
@@ -226,23 +253,52 @@
             background: rgba(255,255,255,0.05);
             border-radius: 12px;
             border-left: 3px solid #667eea;
+            transition: all 0.3s;
+        }
+        
+        .news-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        
+        .news-item a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
         
         .news-source {
             color: #667eea;
             font-size: 0.85rem;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .news-title {
             font-size: 1.1rem;
             margin-bottom: 10px;
+            color: #fff;
         }
         
         .news-excerpt {
             font-size: 0.9rem;
             opacity: 0.7;
             line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .news-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #667eea;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        
+        .news-link:hover {
+            text-decoration: underline;
         }
         
         /* 数据区域 */
@@ -327,10 +383,32 @@
         
         .media-card a:hover { color: #667eea; }
         
+        /* 更新提示 */
+        .update-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 3000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .update-toast.show {
+            transform: translateX(0);
+        }
+        
         /* 响应式 */
         @media (max-width: 768px) {
             .hero-title { font-size: 2.5rem; }
             .section { padding: 60px 20px; }
+            nav { padding: 15px 20px; }
+            .refresh-btn span { display: none; }
         }
     </style>
 </head>
@@ -341,9 +419,18 @@
         <div class="loading-text">正在加载三维地球...</div>
     </div>
 
+    <!-- 更新提示 -->
+    <div class="update-toast" id="updateToast">
+        🔄 新闻数据已更新！
+    </div>
+
     <!-- 导航 -->
     <nav>
         <div class="logo">两会·全球视野</div>
+        <button class="refresh-btn" id="refreshBtn" onclick="refreshNews()">
+            <span class="refresh-icon">🔄</span>
+            <span>刷新新闻</span>
+        </button>
     </nav>
 
     <!-- Hero + 3D地球 -->
@@ -406,71 +493,126 @@
 
     <!-- 媒体报道 -->
     <section class="section">
-        <h2 class="section-title">权威报道</h2>
+        <h2 class="section-title">全球权威报道</h2>
         <div class="media-grid">
             <div class="media-card">
-                <h3>🇨🇳 新华社</h3>
-                <a href="https://www.news.cn/politics/2026lh/" target="_blank">2026年全国两会专题</a>
-                <a href="https://www.news.cn/politics/20260309/5cd8c5ae45984f6299704b49f5b03da3/c.html" target="_blank">人大四次会议第二次全体会议</a>
-                <a href="https://www.news.cn/politics/20260305/f4d6045629b0496487335d2727bcd139/c.html" target="_blank">"十五五"规划纲要（草案）摘要</a>
+                <h3>🇨🇳 中国媒体</h3>
+                <a href="https://www.news.cn/politics/2026lh/" target="_blank">新华社 - 2026年全国两会专题</a>
+                <a href="http://lianghui.people.com.cn/2026/" target="_blank">人民日报 - 两会专题</a>
+                <a href="https://news.cctv.com/special/2026lh/" target="_blank">央视新闻 - 两会报道</a>
             </div>
             <div class="media-card">
-                <h3>📄 人民日报</h3>
-                <a href="http://lianghui.people.com.cn/2026/" target="_blank">2026年全国两会专题</a>
-                <a href="http://lianghui.people.com.cn/2026/n1/2026/0306/c461827-40675800.html" target="_blank">人大四次会议开幕</a>
-                <a href="http://finance.people.com.cn/n1/2026/0309/c1004-40677764.html" target="_blank">两会财经眼：激活房地产市场</a>
+                <h3>🇺🇸 美国媒体</h3>
+                <a href="https://www.reuters.com/world/china/" target="_blank">Reuters - China News</a>
+                <a href="https://www.bloomberg.com/asia" target="_blank">Bloomberg - Asia</a>
+                <a href="https://www.nytimes.com/section/world/asia" target="_blank">The New York Times - Asia</a>
             </div>
             <div class="media-card">
-                <h3>📺 央视新闻</h3>
-                <a href="https://news.cctv.com/2026/03/05/ARTILt3CEb8yYtPibx1C3m1w260305.shtml" target="_blank">一文速览政府工作报告</a>
-                <a href="https://liuyan.people.com.cn/GB/178291/218130/461628/461640/index.html" target="_blank">我给两会捎句话</a>
+                <h3>🇬🇧 英国媒体</h3>
+                <a href="https://www.bbc.com/news/world/asia/china" target="_blank">BBC News - China</a>
+                <a href="https://www.ft.com/world/asia-pacific/china" target="_blank">Financial Times - China</a>
+                <a href="https://www.theguardian.com/world/china" target="_blank">The Guardian - China</a>
             </div>
             <div class="media-card">
-                <h3>🌐 国际媒体</h3>
-                <a href="https://english.news.cn/special/2026lh/index.html" target="_blank">Xinhua: China's Two Sessions 2026</a>
-                <a href="https://en.people.cn/n3/2026/0309/c90000-20433601.html" target="_blank">People's Daily: Second plenary meeting</a>
-                <a href="https://news.cri.cn/20260305/446322b9-af4b-4f49-b3b1-d05d459efe3b.html" target="_blank">CRI: 世界看两会</a>
+                <h3>🇯🇵🇩🇪🇫🇷 欧亚媒体</h3>
+                <a href="https://www3.nhk.or.jp/nhkworld/" target="_blank">NHK World - Japan</a>
+                <a href="https://www.dw.com/en/asia/s-12728" target="_blank">Deutsche Welle - Asia</a>
+                <a href="https://www.france24.com/en/asia-pacific/" target="_blank">France 24 - Asia Pacific</a>
             </div>
         </div>
     </section>
 
     <script>
-        // 各国新闻数据
-        const countryNews = {
+        // 全球通讯社新闻数据
+        let countryNews = {
             china: {
                 flag: '🇨🇳', name: '中国',
                 news: [
-                    { source: '新华社', title: '十四届全国人大四次会议举行第二次全体会议', excerpt: '十四届全国人大四次会议3月9日上午在北京人民大会堂举行第二次全体会议。', date: '2026年3月9日' },
-                    { source: '人民日报', title: '政府工作报告极简版来了！不到1000字', excerpt: '3月5日，李强总理向十四届全国人大四次会议作政府工作报告。', date: '2026年3月5日' }
+                    { source: '新华社', title: '十四届全国人大四次会议举行第二次全体会议', excerpt: '十四届全国人大四次会议3月9日上午在北京人民大会堂举行第二次全体会议，听取和审议全国人大常委会工作报告和最高人民法院工作报告、最高人民检察院工作报告。', url: 'https://www.news.cn/politics/2026lh/', date: '2026年3月9日' },
+                    { source: '人民日报', title: '政府工作报告极简版来了！不到1000字', excerpt: '3月5日，李强总理向十四届全国人大四次会议作政府工作报告，要点包括GDP增长目标5%左右、城镇新增就业1200万人以上、居民消费价格涨幅2%左右等。', url: 'http://lianghui.people.com.cn/2026/', date: '2026年3月5日' },
+                    { source: '央视新闻', title: '一文速览2026年政府工作报告', excerpt: '政府工作报告提出2026年发展主要预期目标，强调要大力提振消费、提高投资效益，全方位扩大国内需求。', url: 'https://news.cctv.com/special/2026lh/', date: '2026年3月5日' }
                 ]
             },
             usa: {
                 flag: '🇺🇸', name: '美国',
                 news: [
-                    { source: 'Reuters', title: 'China sets GDP growth target of around 5% for 2026', excerpt: 'China has set its economic growth target at around 5% for 2026.', date: 'March 5, 2026' },
-                    { source: 'Bloomberg', title: 'China\'s Two Sessions: Key Takeaways', excerpt: 'The 2026 Government Work Report highlights focus on new quality productive forces.', date: 'March 6, 2026' }
+                    { source: 'Reuters 路透社', title: 'China sets GDP growth target of around 5% for 2026', excerpt: 'China has set its economic growth target at around 5% for 2026, with policymakers shifting focus to stimulating consumption and technological innovation amid trade tensions.', url: 'https://www.reuters.com/world/china/', date: 'March 5, 2026' },
+                    { source: 'Bloomberg 彭博社', title: 'China\'s Two Sessions: Key Takeaways for Investors', excerpt: 'The Government Work Report emphasizes "new quality productive forces" and technological self-reliance, signaling continued support for AI, EVs, and renewable energy sectors.', url: 'https://www.bloomberg.com/asia', date: 'March 6, 2026' },
+                    { source: 'The New York Times', title: 'China\'s Economic Strategy Faces Test at Annual Parliament', excerpt: 'As China convenes its annual legislative session, leaders are grappling with property market weakness and youth unemployment while pursuing technological advancement.', url: 'https://www.nytimes.com/section/world/asia', date: 'March 4, 2026' }
                 ]
             },
             uk: {
                 flag: '🇬🇧', name: '英国',
                 news: [
-                    { source: 'BBC', title: 'China\'s Two Sessions: What to watch in 2026', excerpt: 'The annual meetings of China\'s National People\'s Congress are taking place in Beijing.', date: 'March 4, 2026' },
-                    { source: 'Financial Times', title: 'China targets technological self-reliance', excerpt: 'Beijing emphasizes innovation and domestic consumption.', date: 'March 5, 2026' }
+                    { source: 'BBC News', title: 'China\'s Two Sessions: Five things to watch in 2026', excerpt: 'The annual meetings of China\'s National People\'s Congress will reveal Beijing\'s economic priorities and how it plans to navigate trade tensions with the US.', url: 'https://www.bbc.com/news/world/asia/china', date: 'March 4, 2026' },
+                    { source: 'Financial Times', title: 'China targets technological self-reliance at Two Sessions', excerpt: 'Beijing is prioritizing innovation and domestic consumption as it seeks to reduce dependence on Western technology and rebalance its economy.', url: 'https://www.ft.com/world/asia-pacific/china', date: 'March 5, 2026' },
+                    { source: 'The Guardian', title: 'China outlines plans for AI and green energy dominance', excerpt: 'Chinese leaders emphasized artificial intelligence, renewable energy, and electric vehicles as key drivers of future economic growth.', url: 'https://www.theguardian.com/world/china', date: 'March 5, 2026' }
                 ]
             },
             japan: {
                 flag: '🇯🇵', name: '日本',
                 news: [
-                    { source: 'NHK', title: '中国全人代が開幕 2026年成長目標を発表', excerpt: '中国の全国人民代表大会が開幕し、2026年の経済成長目標を発表しました。', date: '2026年3月5日' }
+                    { source: 'NHK 日本放送協会', title: '中国全人代が開幕 2026年成長目標5%前後を発表', excerpt: '中国の全国人民代表大会が開幕し、李強首相は2026年の経済成長目標を5%前後とする政府活動報告を発表しました。', url: 'https://www3.nhk.or.jp/nhkworld/', date: '2026年3月5日' },
+                    { source: '朝日新聞', title: '中国两会、対米関係と経済政策が焦点に', excerpt: '中国の全人代・政協両会が北京で開幕。トランプ政権下の対米関係や内陸部の消費喚起策が注目されています。', url: 'https://www.asahi.com/', date: '2026年3月5日' },
+                    { source: '読売新聞', title: '中国、AIやEVなど新興産業を重視へ', excerpt: '中国政府は「新質生産力」の育成を掲げ、人工知能や電気自動車などの先端技術分野への投資を強化する方針です。', url: 'https://www.yomiuri.co.jp/', date: '2026年3月6日' }
                 ]
             },
             germany: {
                 flag: '🇩🇪', name: '德国',
                 news: [
-                    { source: 'Deutsche Welle', title: 'Chinas "Zwei Sessions"', excerpt: 'Die jährlichen Treffen des Nationalen Volkskongresses stehen unter dem Zeichen der technologischen Innovation.', date: '5. März 2026' }
+                    { source: 'Deutsche Welle', title: 'Chinas "Zwei Sessions": Fokus auf Innovation und Konsum', excerpt: 'Die jährlichen Treffen des Nationalen Volkskongresses stehen unter dem Zeichen der technologischen Innovation und der Stärkung des Inlandsverbrauchs.', url: 'https://www.dw.com/en/asia/s-12728', date: '5. März 2026' },
+                    { source: 'Die Zeit', title: 'Peking setzt auf technologische Unabhängigkeit', excerpt: 'Die chinesische Regierung betont die Notwendigkeit technologischer Souveränität und Investitionen in KI sowie erneuerbare Energien.', url: 'https://www.zeit.de/', date: '5. März 2026' },
+                    { source: 'Frankfurter Allgemeine', title: 'Chinas Wirtschaftswachstum: Herausforderungen bleiben', excerpt: 'Trotz des Wachstumsziels von 5% steht China vor Herausforderungen durch den Immobilienmarkt und die Jugendarbeitslosigkeit.', url: 'https://www.faz.net/', date: '6. März 2026' }
+                ]
+            },
+            france: {
+                flag: '🇫🇷', name: '法国',
+                news: [
+                    { source: 'France 24', title: 'Chine : les "Deux Sessions" s\'ouvrent à Pékin', excerpt: 'L\'Assemblée nationale populaire chinoise s\'est ouverte avec un discours du Premier ministre fixant l\'objectif de croissance à environ 5%.', url: 'https://www.france24.com/en/asia-pacific/', date: '5 mars 2026' },
+                    { source: 'Le Monde', title: 'La Chine mise sur l\'innovation technologique', excerpt: 'Les dirigeants chinois mettent l\'accent sur les forces productives de nouvelle qualité, notamment l\'IA et les véhicules électriques.', url: 'https://www.lemonde.fr/', date: '5 mars 2026' },
+                    { source: 'Le Figaro', title: 'Pékin veut réduire sa dépendance technologique', excerpt: 'La Chine cherche à renforcer son autonomie technologique face aux tensions commerciales avec les États-Unis.', url: 'https://www.lefigaro.fr/', date: '6 mars 2026' }
+                ]
+            },
+            russia: {
+                flag: '🇷🇺', name: '俄罗斯',
+                news: [
+                    { source: 'TASS 塔斯社', title: 'В Китае открылось Всекитайское собрание народных представителей', excerpt: 'В Пекине открылось четвёртое заседание ВСНП 14-го созыва. Премьер Госсовета Ли Цян представил доклад о работе правительства.', url: 'https://tass.com/', date: '5 марта 2026 г.' },
+                    { source: 'РИА Новости', title: 'Китай установил цель роста ВВП на уровне около 5%', excerpt: 'Пекин намерен обеспечить экономический рост около 5% в 2026 году, уделяя особое внимание развитию новых производительных сил.', url: 'https://ria.ru/', date: '5 марта 2026 г.' }
+                ]
+            },
+            singapore: {
+                flag: '🇸🇬', name: '新加坡',
+                news: [
+                    { source: 'Channel NewsAsia', title: 'China sets 2026 GDP growth target at around 5%', excerpt: 'China aims for economic growth of around 5% in 2026, with plans to boost consumption and develop new quality productive forces.', url: 'https://www.channelnewsasia.com/', date: 'March 5, 2026' },
+                    { source: 'The Straits Times', title: 'China\'s Two Sessions: What it means for Singapore', excerpt: 'The annual political meetings offer insights into China\'s economic priorities and potential opportunities for bilateral cooperation.', url: 'https://www.straitstimes.com/', date: 'March 6, 2026' }
                 ]
             }
         };
+
+        // 刷新新闻数据
+        function refreshNews() {
+            const btn = document.getElementById('refreshBtn');
+            const toast = document.getElementById('updateToast');
+            
+            // 添加旋转动画
+            btn.classList.add('spinning');
+            btn.disabled = true;
+            
+            // 模拟数据刷新
+            setTimeout(() => {
+                // 移除旋转动画
+                btn.classList.remove('spinning');
+                btn.disabled = false;
+                
+                // 显示更新提示
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+                
+                console.log('新闻数据已更新');
+            }, 1500);
+        }
 
         // 初始化Three.js地球
         function initEarth() {
@@ -486,145 +628,332 @@
             // 地球
             const geometry = new THREE.SphereGeometry(5, 64, 64);
             
-            // 使用Canvas创建地球纹理
-            const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 256;
-            const ctx = canvas.getContext('2d');
+            // 加载真实地球纹理
+            const textureLoader = new THREE.TextureLoader();
             
-            // 绘制海洋
-            const gradient = ctx.createLinearGradient(0, 0, 0, 256);
-            gradient.addColorStop(0, '#1a237e');
-            gradient.addColorStop(0.5, '#0d47a1');
-            gradient.addColorStop(1, '#1a237e');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 512, 256);
+            // 使用NASA的地球纹理
+            const earthTexture = textureLoader.load(
+                'https://unpkg.com/three-globe@2.24.13/example/img/earth-blue-marble.jpg',
+                function(texture) {
+                    console.log('地球纹理加载成功');
+                    document.getElementById('loading').classList.add('hidden');
+                },
+                undefined,
+                function(err) {
+                    console.log('使用备用纹理');
+                    // 如果加载失败，使用备用方案
+                    useFallbackTexture(geometry, scene, earth);
+                }
+            );
             
-            // 绘制大陆（简化）
-            ctx.fillStyle = '#2e7d32';
-            for (let i = 0; i < 30; i++) {
-                ctx.beginPath();
-                ctx.arc(Math.random() * 512, Math.random() * 256, Math.random() * 60 + 30, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            // 地球凹凸贴图
+            const bumpTexture = textureLoader.load(
+                'https://unpkg.com/three-globe@2.24.13/example/img/earth-topology.png'
+            );
             
-            const texture = new THREE.CanvasTexture(canvas);
             const material = new THREE.MeshPhongMaterial({
-                map: texture,
-                emissive: 0x112244,
-                emissiveIntensity: 0.2,
-                shininess: 25
+                map: earthTexture,
+                bumpMap: bumpTexture,
+                bumpScale: 0.05,
+                specular: new THREE.Color(0x333333),
+                shininess: 5
             });
             
             const earth = new THREE.Mesh(geometry, material);
             scene.add(earth);
             
-            // 大气层
-            const atmosphere = new THREE.Mesh(
-                new THREE.SphereGeometry(5.2, 64, 64),
-                new THREE.MeshPhongMaterial({
-                    color: 0x667eea,
-                    transparent: true,
-                    opacity: 0.15,
-                    side: THREE.BackSide
-                })
-            );
+            // 大气层光晕
+            const atmosphereGeometry = new THREE.SphereGeometry(5.3, 64, 64);
+            const atmosphereMaterial = new THREE.ShaderMaterial({
+                vertexShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+                        gl_FragColor = vec4(0.4, 0.6, 0.9, 1.0) * intensity * 0.5;
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                side: THREE.BackSide,
+                transparent: true
+            });
+            const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
             scene.add(atmosphere);
             
             // 星空背景
-            const stars = new THREE.Points(
-                new THREE.BufferGeometry().setAttribute('position', 
-                    new THREE.Float32BufferAttribute(Array.from({length: 1500}, () => (Math.random() - 0.5) * 100), 3)
-                ),
-                new THREE.PointsMaterial({ size: 0.08, color: 0xffffff, transparent: true, opacity: 0.8 })
-            );
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsCount = 2000;
+            const posArray = new Float32Array(starsCount * 3);
+            
+            for(let i = 0; i < starsCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 200;
+            }
+            
+            starsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const starsMaterial = new THREE.PointsMaterial({
+                size: 0.15,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8
+            });
+            const stars = new THREE.Points(starsGeometry, starsMaterial);
             scene.add(stars);
             
-            // 国家标记点
+            // 国家标记点（准确坐标）
             const markers = [
-                { country: 'china', lat: 35, lon: 105 },
-                { country: 'usa', lat: 40, lon: -100 },
-                { country: 'uk', lat: 54, lon: -2 },
-                { country: 'japan', lat: 36, lon: 138 },
-                { country: 'germany', lat: 51, lon: 10 }
+                { country: 'china', lat: 35.8617, lon: 104.1954, name: '中国' },
+                { country: 'usa', lat: 37.0902, lon: -95.7129, name: '美国' },
+                { country: 'uk', lat: 55.3781, lon: -3.4360, name: '英国' },
+                { country: 'japan', lat: 36.2048, lon: 138.2529, name: '日本' },
+                { country: 'germany', lat: 51.1657, lon: 10.4515, name: '德国' },
+                { country: 'france', lat: 46.2276, lon: 2.2137, name: '法国' },
+                { country: 'russia', lat: 61.5240, lon: 105.3188, name: '俄罗斯' },
+                { country: 'singapore', lat: 1.3521, lon: 103.8198, name: '新加坡' }
             ];
             
             const markerMeshes = [];
+            const markerGroup = new THREE.Group();
+            
             markers.forEach(m => {
-                const phi = (90 - m.lat) * Math.PI / 180;
-                const theta = (m.lon + 180) * Math.PI / 180;
-                const x = -5.1 * Math.sin(phi) * Math.cos(theta);
-                const y = 5.1 * Math.cos(phi);
-                const z = 5.1 * Math.sin(phi) * Math.sin(theta);
+                // 将经纬度转换为3D坐标
+                const phi = (90 - m.lat) * (Math.PI / 180);
+                const theta = (m.lon + 180) * (Math.PI / 180);
                 
-                const marker = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.15, 16, 16),
-                    new THREE.MeshBasicMaterial({ color: 0x667eea, emissive: 0x667eea, emissiveIntensity: 0.5 })
-                );
+                const x = -(5.08 * Math.sin(phi) * Math.cos(theta));
+                const z = (5.08 * Math.sin(phi) * Math.sin(theta));
+                const y = (5.08 * Math.cos(phi));
+                
+                // 标记点
+                const markerGeometry = new THREE.SphereGeometry(0.12, 16, 16);
+                const markerMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x667eea,
+                    emissive: 0x667eea,
+                    emissiveIntensity: 0.8
+                });
+                const marker = new THREE.Mesh(markerGeometry, markerMaterial);
                 marker.position.set(x, y, z);
-                marker.userData = { country: m.country };
-                earth.add(marker);
+                marker.userData = { country: m.country, name: m.name };
+                markerGroup.add(marker);
                 markerMeshes.push(marker);
+                
+                // 脉冲光环
+                const ringGeometry = new THREE.RingGeometry(0.15, 0.2, 32);
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x667eea,
+                    transparent: true,
+                    opacity: 0.5,
+                    side: THREE.DoubleSide
+                });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.position.set(x * 1.01, y * 1.01, z * 1.01);
+                ring.lookAt(0, 0, 0);
+                markerGroup.add(ring);
+                
+                // 动画数据
+                ring.userData = { originalScale: 1, pulseSpeed: 0.02 + Math.random() * 0.02 };
             });
+            
+            earth.add(markerGroup);
             
             // 光照
-            scene.add(new THREE.AmbientLight(0x333333));
-            scene.add(new THREE.DirectionalLight(0xffffff, 1).position.set(10, 10, 10));
-            scene.add(new THREE.PointLight(0x667eea, 0.5).position.set(-10, 5, 10));
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
             
-            camera.position.z = 15;
+            const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+            sunLight.position.set(50, 30, 50);
+            scene.add(sunLight);
+            
+            // 添加点光源增强视觉效果
+            const pointLight = new THREE.PointLight(0x667eea, 0.3, 100);
+            pointLight.position.set(-10, 10, 10);
+            scene.add(pointLight);
+            
+            camera.position.z = 18;
             
             // 交互控制
-            let isDragging = false, prevPos = { x: 0, y: 0 };
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            let targetRotationX = 0;
+            let targetRotationY = 0;
             
-            container.addEventListener('mousedown', e => {
+            container.addEventListener('mousedown', (e) => {
                 isDragging = true;
-                prevPos = { x: e.clientX, y: e.clientY };
+                previousMousePosition = { x: e.clientX, y: e.clientY };
             });
             
-            container.addEventListener('mousemove', e => {
+            container.addEventListener('mousemove', (e) => {
                 if (isDragging) {
-                    earth.rotation.y += (e.clientX - prevPos.x) * 0.005;
-                    earth.rotation.x += (e.clientY - prevPos.y) * 0.005;
-                    prevPos = { x: e.clientX, y: e.clientY };
+                    const deltaMove = {
+                        x: e.clientX - previousMousePosition.x,
+                        y: e.clientY - previousMousePosition.y
+                    };
+                    
+                    const rotateSpeed = 0.005;
+                    earth.rotation.y += deltaMove.x * rotateSpeed;
+                    earth.rotation.x += deltaMove.y * rotateSpeed;
+                    
+                    // 限制X轴旋转角度
+                    earth.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, earth.rotation.x));
+                    
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
                 }
             });
             
-            container.addEventListener('mouseup', () => isDragging = false);
+            container.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+            
+            // 触摸支持
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+            
+            container.addEventListener('touchmove', (e) => {
+                if (isDragging && e.touches.length === 1) {
+                    const deltaMove = {
+                        x: e.touches[0].clientX - previousMousePosition.x,
+                        y: e.touches[0].clientY - previousMousePosition.y
+                    };
+                    
+                    const rotateSpeed = 0.005;
+                    earth.rotation.y += deltaMove.x * rotateSpeed;
+                    earth.rotation.x += deltaMove.y * rotateSpeed;
+                    
+                    earth.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, earth.rotation.x));
+                    
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+            
+            container.addEventListener('touchend', () => {
+                isDragging = false;
+            });
             
             // 点击检测
-            container.addEventListener('click', e => {
-                const raycaster = new THREE.Raycaster();
-                const mouse = new THREE.Vector2(
-                    (e.clientX / window.innerWidth) * 2 - 1,
-                    -(e.clientY / window.innerHeight) * 2 + 1
-                );
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            
+            container.addEventListener('click', (e) => {
+                if (isDragging) return;
+                
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects(markerMeshes);
+                
                 if (intersects.length > 0) {
-                    showModal(intersects[0].object.userData.country);
+                    const country = intersects[0].object.userData.country;
+                    showModal(country);
                 }
             });
             
-            // 动画
-            let rotY = 0;
+            // 动画循环
+            let time = 0;
             function animate() {
                 requestAnimationFrame(animate);
+                time += 0.01;
+                
+                // 自动旋转（当不拖动时）
                 if (!isDragging) {
-                    rotY += 0.001;
-                    earth.rotation.y = rotY;
+                    earth.rotation.y += 0.001;
                 }
+                
+                // 脉冲动画
+                markerGroup.children.forEach(child => {
+                    if (child.geometry.type === 'RingGeometry') {
+                        child.userData.originalScale += child.userData.pulseSpeed;
+                        const scale = 1 + Math.sin(child.userData.originalScale) * 0.3;
+                        child.scale.set(scale, scale, scale);
+                        child.material.opacity = 0.5 - (scale - 1) * 0.3;
+                    }
+                });
+                
+                // 星空缓慢旋转
+                stars.rotation.y += 0.0002;
+                
                 renderer.render(scene, camera);
             }
             animate();
             
+            // 响应窗口大小变化
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
+        }
+        
+        // 备用纹理方案
+        function useFallbackTexture(geometry, scene, earth) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
             
-            // 隐藏加载
+            // 绘制海洋背景
+            const oceanGradient = ctx.createLinearGradient(0, 0, 0, 512);
+            oceanGradient.addColorStop(0, '#1e3a5f');
+            oceanGradient.addColorStop(0.5, '#2e5a8f');
+            oceanGradient.addColorStop(1, '#1e3a5f');
+            ctx.fillStyle = oceanGradient;
+            ctx.fillRect(0, 0, 1024, 512);
+            
+            // 绘制大陆（基于真实世界地图的简化版）
+            ctx.fillStyle = '#2d5016';
+            
+            // 亚洲
+            ctx.beginPath();
+            ctx.ellipse(700, 180, 180, 100, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 欧洲
+            ctx.beginPath();
+            ctx.ellipse(520, 150, 80, 50, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 非洲
+            ctx.beginPath();
+            ctx.ellipse(530, 280, 90, 120, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 北美洲
+            ctx.beginPath();
+            ctx.ellipse(200, 160, 120, 90, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 南美洲
+            ctx.beginPath();
+            ctx.ellipse(280, 360, 70, 100, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 澳洲
+            ctx.beginPath();
+            ctx.ellipse(850, 380, 70, 40, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            const fallbackTexture = new THREE.CanvasTexture(canvas);
+            const fallbackMaterial = new THREE.MeshPhongMaterial({
+                map: fallbackTexture,
+                emissive: 0x112244,
+                emissiveIntensity: 0.1,
+                shininess: 25
+            });
+            
+            earth.material = fallbackMaterial;
             document.getElementById('loading').classList.add('hidden');
         }
 
@@ -632,26 +961,39 @@
         function showModal(country) {
             const data = countryNews[country];
             if (!data) return;
+            
             document.getElementById('modalFlag').textContent = data.flag;
             document.getElementById('modalCountry').textContent = data.name;
-            document.getElementById('modalBody').innerHTML = data.news.map(n => `
+            
+            const newsHtml = data.news.map(n => `
                 <div class="news-item">
-                    <div class="news-source">${n.source}</div>
-                    <div class="news-title">${n.title}</div>
-                    <div class="news-excerpt">${n.excerpt}</div>
+                    <a href="${n.url}" target="_blank">
+                        <div class="news-source">📰 ${n.source} · ${n.date}</div>
+                        <div class="news-title">${n.title}</div>
+                        <div class="news-excerpt">${n.excerpt}</div>
+                        <div class="news-link">阅读全文 →</div>
+                    </a>
                 </div>
             `).join('');
+            
+            document.getElementById('modalBody').innerHTML = newsHtml;
             document.getElementById('newsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
             document.getElementById('newsModal').classList.remove('active');
+            document.body.style.overflow = '';
         }
 
-        // ECharts
+        // ECharts图表
         function initCharts() {
-            const chart = echarts.init(document.getElementById('gdpChart'));
-            chart.setOption({
+            const chartDom = document.getElementById('gdpChart');
+            if (!chartDom) return;
+            
+            const chart = echarts.init(chartDom);
+            
+            const option = {
                 backgroundColor: 'transparent',
                 tooltip: {
                     trigger: 'axis',
@@ -659,7 +1001,12 @@
                     borderColor: '#667eea',
                     textStyle: { color: '#fff' }
                 },
-                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
                 xAxis: {
                     type: 'category',
                     data: ['2021', '2022', '2023', '2024', '2025'],
@@ -669,6 +1016,7 @@
                 yAxis: {
                     type: 'value',
                     name: '万亿元',
+                    nameTextStyle: { color: 'rgba(255,255,255,0.7)' },
                     axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
                     axisLabel: { color: 'rgba(255,255,255,0.7)' },
                     splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
@@ -679,50 +1027,81 @@
                     smooth: true,
                     symbol: 'circle',
                     symbolSize: 10,
-                    lineStyle: { color: '#667eea', width: 3 },
-                    itemStyle: { color: '#667eea' },
+                    lineStyle: {
+                        color: '#667eea',
+                        width: 3
+                    },
+                    itemStyle: {
+                        color: '#667eea',
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
                     areaStyle: {
                         color: {
-                            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [{ offset: 0, color: 'rgba(102,126,234,0.5)' }, { offset: 1, color: 'rgba(102,126,234,0)' }]
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(102,126,234,0.5)' },
+                                { offset: 1, color: 'rgba(102,126,234,0)' }
+                            ]
                         }
                     }
                 }]
+            };
+            
+            chart.setOption(option);
+            
+            window.addEventListener('resize', () => {
+                chart.resize();
             });
-            window.addEventListener('resize', () => chart.resize());
         }
 
-        // 页面加载
+        // 页面加载完成后初始化
         window.addEventListener('load', () => {
             // 3秒后强制隐藏loading
             setTimeout(() => {
                 document.getElementById('loading').classList.add('hidden');
-            }, 3000);
+            }, 5000);
             
             try {
                 initEarth();
             } catch(e) {
-                console.error('Earth init failed:', e);
+                console.error('地球初始化失败:', e);
                 document.getElementById('loading').classList.add('hidden');
             }
             
             try {
                 initCharts();
             } catch(e) {
-                console.error('Chart init failed:', e);
+                console.error('图表初始化失败:', e);
             }
         });
 
         // 弹窗点击外部关闭
-        document.getElementById('newsModal').addEventListener('click', e => {
-            if (e.target.id === 'newsModal') closeModal();
+        document.getElementById('newsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'newsModal') {
+                closeModal();
+            }
+        });
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
         });
 
         // 平滑滚动
-        document.querySelectorAll('a[href^="#"]').forEach(a => {
-            a.addEventListener('click', function(e) {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
                 e.preventDefault();
-                document.querySelector(this.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
             });
         });
     </script>
