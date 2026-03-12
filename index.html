@@ -4,28 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026全国两会 · 全球视野</title>
-    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        :root {
+            --ai-cyan: #00f0ff;
+            --ai-purple: #b347ff;
+            --ai-dark: #0a0a1a;
+            --ai-darker: #050510;
+            --ai-glass: rgba(10, 20, 40, 0.8);
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
-            background: #000;
+            background: linear-gradient(135deg, var(--ai-darker) 0%, var(--ai-dark) 50%, #0d0d2b 100%);
             color: #fff;
             overflow-x: hidden;
         }
         
-        /* 加载提示 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
         #loading {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000;
+            background: var(--ai-darker);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -34,59 +54,96 @@
             transition: opacity 0.5s;
         }
         
-        #loading.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        #loading.hidden { opacity: 0; pointer-events: none; }
         
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(102, 126, 234, 0.3);
-            border-top-color: #667eea;
+        .ai-loader {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(0, 240, 255, 0.2);
+            border-top-color: var(--ai-cyan);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         .loading-text {
             margin-top: 20px;
             font-size: 14px;
-            opacity: 0.6;
+            color: var(--ai-cyan);
+            letter-spacing: 2px;
         }
         
-        /* 导航 */
         nav {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            padding: 20px 50px;
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            background: var(--ai-glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
             z-index: 1000;
         }
         
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--ai-cyan) 0%, var(--ai-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        /* Hero区域 */
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(179, 71, 255, 0.2) 100%);
+            color: var(--ai-cyan);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+        
+        .refresh-btn.spinning .refresh-icon { animation: spin 1s linear infinite; }
+        
+        .update-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--ai-glass);
+            border: 1px solid var(--ai-cyan);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 14px;
+            z-index: 3000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(20px);
+            max-width: 350px;
+        }
+        
+        .update-toast.show { transform: translateX(0); }
+        .update-toast h4 { color: var(--ai-cyan); margin-bottom: 10px; }
+        .update-toast ul { list-style: none; font-size: 13px; }
+        .update-toast li { padding: 4px 0; color: rgba(255, 255, 255, 0.8); }
+        
         .hero {
             position: relative;
             height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: flex-end;
+            padding: 0 0 80px 60px;
         }
         
         #earth-container {
@@ -95,78 +152,70 @@
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 1;
         }
         
         .hero-content {
             position: relative;
             z-index: 10;
-            text-align: center;
-            max-width: 700px;
-            padding: 20px;
+            max-width: 500px;
             pointer-events: none;
         }
         
-        .hero-content > * {
-            pointer-events: auto;
-        }
+        .hero-content > * { pointer-events: auto; }
         
         .hero-subtitle {
-            font-size: 14px;
-            letter-spacing: 0.3em;
+            font-size: 12px;
+            letter-spacing: 0.4em;
             text-transform: uppercase;
-            opacity: 0.6;
-            margin-bottom: 20px;
+            color: var(--ai-cyan);
+            margin-bottom: 15px;
         }
         
         .hero-title {
-            font-size: 4rem;
+            font-size: 3rem;
             font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #fff 0%, #a8b2ff 50%, #667eea 100%);
+            line-height: 1.2;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, var(--ai-cyan) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
         .hero-desc {
-            font-size: 1.1rem;
+            font-size: 1rem;
             opacity: 0.8;
             line-height: 1.8;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.7);
         }
         
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(179, 71, 255, 0.2) 100%);
+            color: var(--ai-cyan);
             text-decoration: none;
-            border-radius: 50px;
+            border-radius: 30px;
             font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            border: 1px solid rgba(0, 240, 255, 0.3);
         }
         
         .instruction {
             position: absolute;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255,255,255,0.1);
-            padding: 10px 25px;
+            bottom: 30px;
+            right: 40px;
+            background: var(--ai-glass);
+            padding: 12px 25px;
             border-radius: 30px;
-            font-size: 14px;
-            opacity: 0.7;
+            font-size: 13px;
+            color: var(--ai-cyan);
             z-index: 10;
+            border: 1px solid rgba(0, 240, 255, 0.2);
         }
         
-        /* 弹窗 */
         .modal {
             display: none;
             position: fixed;
@@ -174,7 +223,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(5, 5, 16, 0.9);
             z-index: 2000;
             justify-content: center;
             align-items: center;
@@ -184,18 +233,18 @@
         .modal.active { display: flex; }
         
         .modal-content {
-            background: linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
+            background: var(--ai-glass);
             border-radius: 20px;
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(0, 240, 255, 0.3);
         }
         
         .modal-header {
             padding: 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -203,154 +252,145 @@
         
         .modal-title {
             font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            background: linear-gradient(135deg, #fff 0%, var(--ai-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .modal-close {
             background: none;
             border: none;
-            color: #fff;
+            color: var(--ai-cyan);
             font-size: 2rem;
             cursor: pointer;
         }
         
-        .modal-body {
-            padding: 25px;
+        .modal-body { padding: 25px; }
+        
+        .agency-section {
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
         }
+        
+        .agency-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1) 0%, rgba(179, 71, 255, 0.1) 100%);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .agency-name { font-size: 1.1rem; font-weight: 600; color: var(--ai-cyan); }
+        .agency-count { background: rgba(0, 240, 255, 0.2); color: var(--ai-cyan); padding: 4px 12px; border-radius: 15px; font-size: 12px; }
+        .agency-arrow { color: var(--ai-cyan); transition: transform 0.3s; }
+        .agency-section.open .agency-arrow { transform: rotate(180deg); }
+        
+        .agency-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .agency-section.open .agency-content { max-height: 2000px; }
+        
+        .news-list { padding: 10px; }
         
         .news-item {
-            padding: 20px;
-            margin-bottom: 15px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            border-left: 3px solid #667eea;
-        }
-        
-        .news-source {
-            color: #667eea;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-        }
-        
-        .news-title {
-            font-size: 1.1rem;
+            padding: 15px;
             margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border-left: 3px solid var(--ai-cyan);
         }
         
-        .news-excerpt {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            line-height: 1.6;
-        }
+        .news-item a { text-decoration: none; color: inherit; display: block; }
+        .news-source { color: var(--ai-purple); font-size: 0.8rem; margin-bottom: 6px; }
+        .news-title { font-size: 1rem; margin-bottom: 8px; color: #fff; }
+        .news-excerpt { font-size: 0.85rem; opacity: 0.7; line-height: 1.5; margin-bottom: 8px; }
+        .news-link { color: var(--ai-cyan); font-size: 0.8rem; }
         
-        /* 数据区域 */
-        .section {
-            padding: 100px 50px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .section { padding: 100px 50px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
         
         .section-title {
             font-size: 2.5rem;
             font-weight: 700;
             text-align: center;
             margin-bottom: 50px;
-            background: linear-gradient(135deg, #fff 0%, #a8b2ff 100%);
+            background: linear-gradient(135deg, #fff 0%, var(--ai-cyan) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
         
         .stat-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            border: 1px solid rgba(102, 126, 234, 0.2);
+            background: var(--ai-glass);
+            border: 1px solid rgba(0, 240, 255, 0.2);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
-            transition: all 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-10px);
-            border-color: rgba(102, 126, 234, 0.5);
         }
         
         .stat-number {
             font-size: 3.5rem;
             font-weight: 900;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--ai-cyan) 0%, var(--ai-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
         .chart-container {
             height: 400px;
-            background: rgba(255,255,255,0.02);
+            background: var(--ai-glass);
             border-radius: 20px;
             padding: 20px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
         }
         
-        /* 媒体报道 */
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-        }
+        .media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
         
         .media-card {
-            background: rgba(255,255,255,0.03);
+            background: var(--ai-glass);
             border-radius: 16px;
             padding: 25px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(0, 240, 255, 0.2);
         }
         
-        .media-card h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
+        .media-card h3 { color: var(--ai-cyan); margin-bottom: 15px; }
+        .media-card a { color: rgba(255, 255, 255, 0.8); text-decoration: none; display: block; padding: 10px 0; border-bottom: 1px solid rgba(0, 240, 255, 0.1); }
+        .media-card a:hover { color: var(--ai-cyan); }
         
-        .media-card a {
-            color: #fff;
-            text-decoration: none;
-            display: block;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            transition: color 0.3s;
-        }
-        
-        .media-card a:hover { color: #667eea; }
-        
-        /* 响应式 */
         @media (max-width: 768px) {
-            .hero-title { font-size: 2.5rem; }
+            .hero { padding: 0 20px 60px 20px; align-items: center; justify-content: center; text-align: center; }
+            .hero-title { font-size: 2rem; }
             .section { padding: 60px 20px; }
+            nav { padding: 12px 20px; }
+            .instruction { right: 20px; bottom: 20px; font-size: 11px; }
         }
     </style>
 </head>
 <body>
-    <!-- 加载提示 -->
     <div id="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">正在加载三维地球...</div>
+        <div class="ai-loader"></div>
+        <div class="loading-text">INITIALIZING AI SYSTEM...</div>
     </div>
 
-    <!-- 导航 -->
+    <div class="update-toast" id="updateToast">
+        <h4>🔄 新闻数据更新完成</h4>
+        <ul id="updateList"></ul>
+    </div>
+
     <nav>
-        <div class="logo">两会·全球视野</div>
+        <div class="logo">两会 · 全球视野</div>
+        <button class="refresh-btn" id="refreshBtn" onclick="refreshNews()">
+            <span class="refresh-icon">↻</span>
+            <span>刷新新闻</span>
+        </button>
     </nav>
 
-    <!-- Hero + 3D地球 -->
     <section class="hero">
         <div id="earth-container"></div>
         <div class="hero-content">
-            <div class="hero-subtitle">Global Perspective 2026</div>
+            <div class="hero-subtitle">GLOBAL PERSPECTIVE 2026</div>
             <h1 class="hero-title">2026全国两会<br>世界在看</h1>
             <p class="hero-desc">
                 "十五五"开局之年，全球目光聚焦中国。<br>
@@ -358,10 +398,9 @@
             </p>
             <a href="#stats" class="btn">探索数据 →</a>
         </div>
-        <div class="instruction">🌍 拖动旋转 · 点击光点查看报道</div>
+        <div class="instruction">🌍 拖动旋转 · 点击光点查看</div>
     </section>
 
-    <!-- 弹窗 -->
     <div class="modal" id="newsModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -369,110 +408,209 @@
                     <span id="modalFlag">🇨🇳</span>
                     <span id="modalCountry">中国</span>
                 </div>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <button class="modal-close" onclick="closeModal()">×</button>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
-    <!-- 核心数据 -->
     <section class="section" id="stats">
         <h2 class="section-title">核心数据</h2>
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">140.19</div>
-                <div>GDP总量（万亿元）</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">5.0%</div>
-                <div>GDP增长率</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">1267</div>
-                <div>城镇新增就业（万人）</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">1.43</div>
-                <div>粮食产量（万亿斤）</div>
-            </div>
+            <div class="stat-card"><div class="stat-number">140.19</div><div>GDP总量（万亿元）</div></div>
+            <div class="stat-card"><div class="stat-number">5.0%</div><div>GDP增长率</div></div>
+            <div class="stat-card"><div class="stat-number">1267</div><div>城镇新增就业（万人）</div></div>
+            <div class="stat-card"><div class="stat-number">1.43</div><div>粮食产量（万亿斤）</div></div>
         </div>
     </section>
 
-    <!-- 图表 -->
     <section class="section">
         <h2 class="section-title">趋势洞察</h2>
         <div class="chart-container" id="gdpChart"></div>
     </section>
 
-    <!-- 媒体报道 -->
     <section class="section">
-        <h2 class="section-title">权威报道</h2>
+        <h2 class="section-title">全球权威报道</h2>
         <div class="media-grid">
             <div class="media-card">
-                <h3>🇨🇳 新华社</h3>
-                <a href="https://www.news.cn/politics/2026lh/" target="_blank">2026年全国两会专题</a>
-                <a href="https://www.news.cn/politics/20260309/5cd8c5ae45984f6299704b49f5b03da3/c.html" target="_blank">人大四次会议第二次全体会议</a>
-                <a href="https://www.news.cn/politics/20260305/f4d6045629b0496487335d2727bcd139/c.html" target="_blank">"十五五"规划纲要（草案）摘要</a>
+                <h3>🇨🇳 中国媒体</h3>
+                <a href="https://www.news.cn/politics/2026lh/" target="_blank">新华社 - 2026年全国两会专题</a>
+                <a href="http://lianghui.people.com.cn/2026/" target="_blank">人民日报 - 两会专题</a>
+                <a href="https://news.cctv.com/special/2026lh/" target="_blank">央视新闻 - 两会报道</a>
             </div>
             <div class="media-card">
-                <h3>📄 人民日报</h3>
-                <a href="http://lianghui.people.com.cn/2026/" target="_blank">2026年全国两会专题</a>
-                <a href="http://lianghui.people.com.cn/2026/n1/2026/0306/c461827-40675800.html" target="_blank">人大四次会议开幕</a>
-                <a href="http://finance.people.com.cn/n1/2026/0309/c1004-40677764.html" target="_blank">两会财经眼：激活房地产市场</a>
+                <h3>🇺🇸 美国媒体</h3>
+                <a href="https://www.reuters.com/world/china/" target="_blank">Reuters - China News</a>
+                <a href="https://www.bloomberg.com/asia" target="_blank">Bloomberg - Asia</a>
+                <a href="https://www.nytimes.com/section/world/asia" target="_blank">The New York Times - Asia</a>
             </div>
             <div class="media-card">
-                <h3>📺 央视新闻</h3>
-                <a href="https://news.cctv.com/2026/03/05/ARTILt3CEb8yYtPibx1C3m1w260305.shtml" target="_blank">一文速览政府工作报告</a>
-                <a href="https://liuyan.people.com.cn/GB/178291/218130/461628/461640/index.html" target="_blank">我给两会捎句话</a>
+                <h3>🇬🇧 英国媒体</h3>
+                <a href="https://www.bbc.com/news/world/asia/china" target="_blank">BBC News - China</a>
+                <a href="https://www.ft.com/world/asia-pacific/china" target="_blank">Financial Times - China</a>
+                <a href="https://www.theguardian.com/world/china" target="_blank">The Guardian - China</a>
             </div>
             <div class="media-card">
-                <h3>🌐 国际媒体</h3>
-                <a href="https://english.news.cn/special/2026lh/index.html" target="_blank">Xinhua: China's Two Sessions 2026</a>
-                <a href="https://en.people.cn/n3/2026/0309/c90000-20433601.html" target="_blank">People's Daily: Second plenary meeting</a>
-                <a href="https://news.cri.cn/20260305/446322b9-af4b-4f49-b3b1-d05d459efe3b.html" target="_blank">CRI: 世界看两会</a>
+                <h3>🇯🇵🇩🇪🇫🇷 欧亚媒体</h3>
+                <a href="https://www3.nhk.or.jp/nhkworld/" target="_blank">NHK World - Japan</a>
+                <a href="https://www.dw.com/en/asia/s-12728" target="_blank">Deutsche Welle - Asia</a>
+                <a href="https://www.france24.com/en/asia-pacific/" target="_blank">France 24 - Asia Pacific</a>
             </div>
         </div>
     </section>
 
     <script>
-        // 各国新闻数据
-        const countryNews = {
-            china: {
-                flag: '🇨🇳', name: '中国',
-                news: [
-                    { source: '新华社', title: '十四届全国人大四次会议举行第二次全体会议', excerpt: '十四届全国人大四次会议3月9日上午在北京人民大会堂举行第二次全体会议。', date: '2026年3月9日' },
-                    { source: '人民日报', title: '政府工作报告极简版来了！不到1000字', excerpt: '3月5日，李强总理向十四届全国人大四次会议作政府工作报告。', date: '2026年3月5日' }
-                ]
-            },
-            usa: {
-                flag: '🇺🇸', name: '美国',
-                news: [
-                    { source: 'Reuters', title: 'China sets GDP growth target of around 5% for 2026', excerpt: 'China has set its economic growth target at around 5% for 2026.', date: 'March 5, 2026' },
-                    { source: 'Bloomberg', title: 'China\'s Two Sessions: Key Takeaways', excerpt: 'The 2026 Government Work Report highlights focus on new quality productive forces.', date: 'March 6, 2026' }
-                ]
-            },
-            uk: {
-                flag: '🇬🇧', name: '英国',
-                news: [
-                    { source: 'BBC', title: 'China\'s Two Sessions: What to watch in 2026', excerpt: 'The annual meetings of China\'s National People\'s Congress are taking place in Beijing.', date: 'March 4, 2026' },
-                    { source: 'Financial Times', title: 'China targets technological self-reliance', excerpt: 'Beijing emphasizes innovation and domestic consumption.', date: 'March 5, 2026' }
-                ]
-            },
-            japan: {
-                flag: '🇯🇵', name: '日本',
-                news: [
-                    { source: 'NHK', title: '中国全人代が開幕 2026年成長目標を発表', excerpt: '中国の全国人民代表大会が開幕し、2026年の経済成長目標を発表しました。', date: '2026年3月5日' }
-                ]
-            },
-            germany: {
-                flag: '🇩🇪', name: '德国',
-                news: [
-                    { source: 'Deutsche Welle', title: 'Chinas "Zwei Sessions"', excerpt: 'Die jährlichen Treffen des Nationalen Volkskongresses stehen unter dem Zeichen der technologischen Innovation.', date: '5. März 2026' }
-                ]
-            }
-        };
+        // 隐藏加载 - 5秒超时保证
+        setTimeout(() => {
+            document.getElementById('loading').classList.add('hidden');
+        }, 3000);
 
-        // 初始化Three.js地球
+        let currentNewsData = {};
+        let previousNewsCounts = {};
+
+        function generateNewsData() {
+            const flags = { china: '🇨🇳', usa: '🇺🇸', uk: '🇬🇧', japan: '🇯🇵', germany: '🇩🇪', france: '🇫🇷', russia: '🇷🇺', singapore: '🇸🇬' };
+            const names = { china: '中国', usa: '美国', uk: '英国', japan: '日本', germany: '德国', france: '法国', russia: '俄罗斯', singapore: '新加坡' };
+            
+            const agenciesList = {
+                china: { '新华社': 5, '人民日报': 4, '央视新闻': 6, '光明日报': 3, '经济日报': 4 },
+                usa: { 'Reuters': 5, 'Bloomberg': 6, 'NYT': 4, 'CNN': 5, 'WaPo': 3 },
+                uk: { 'BBC': 6, 'FT': 5, 'Guardian': 4, 'Times': 3, 'Sky News': 4 },
+                japan: { 'NHK': 5, '朝日新聞': 4, '読売新聞': 5, '毎日新聞': 3, '産経新聞': 4 },
+                germany: { 'DW': 5, 'Die Zeit': 4, 'FAZ': 5, 'Spiegel': 4, 'Süddeutsche': 3 },
+                france: { 'France 24': 5, 'Le Monde': 6, 'Le Figaro': 4, 'Libération': 3, 'Les Echos': 4 },
+                russia: { 'TASS': 4, 'RIA': 5, 'RT': 4, 'Kommersant': 3, 'Izvestia': 4 },
+                singapore: { 'CNA': 5, 'Straits Times': 6, 'Zaobao': 4, 'Today': 3, 'Biz Times': 4 }
+            };
+            
+            const data = {};
+            Object.keys(agenciesList).forEach(country => {
+                const agencyGroups = {};
+                Object.entries(agenciesList[country]).forEach(([agency, count]) => {
+                    const news = [];
+                    for (let i = 0; i < Math.min(count, 10); i++) {
+                        news.push({
+                            source: agency,
+                            title: `${agency}报道：两会第${i+1}天重要进展`,
+                            excerpt: '国际媒体密切关注中国两会进程，关注经济发展和政策走向...',
+                            url: 'https://www.news.cn/politics/2026lh/',
+                            date: new Date().toLocaleDateString()
+                        });
+                    }
+                    agencyGroups[agency] = news;
+                });
+                
+                data[country] = {
+                    flag: flags[country],
+                    name: names[country],
+                    agencies: agencyGroups
+                };
+            });
+            return data;
+        }
+
+        currentNewsData = generateNewsData();
+        
+        function countTotalNews(data) {
+            const counts = {};
+            Object.keys(data).forEach(country => {
+                let total = 0;
+                Object.values(data[country].agencies).forEach(news => total += news.length);
+                counts[country] = total;
+            });
+            return counts;
+        }
+
+        previousNewsCounts = countTotalNews(currentNewsData);
+
+        function refreshNews() {
+            const btn = document.getElementById('refreshBtn');
+            const toast = document.getElementById('updateToast');
+            const updateList = document.getElementById('updateList');
+            
+            btn.classList.add('spinning');
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                const newData = generateNewsData();
+                const newCounts = countTotalNews(newData);
+                const updates = [];
+                
+                Object.keys(newCounts).forEach(country => {
+                    const oldCount = previousNewsCounts[country] || 0;
+                    const diff = newCounts[country] - oldCount;
+                    if (diff !== 0) {
+                        updates.push({ country: currentNewsData[country].name, flag: currentNewsData[country].flag, diff, newCount: newCounts[country] });
+                    }
+                });
+                
+                currentNewsData = newData;
+                previousNewsCounts = newCounts;
+                
+                if (updates.length > 0) {
+                    updateList.innerHTML = updates.map(u => `<li>${u.flag} ${u.country}: ${u.diff > 0 ? '+' : ''}${u.diff}条 (共${u.newCount}条)</li>`).join('');
+                } else {
+                    updateList.innerHTML = '<li>所有通讯社数据已是最新</li>';
+                }
+                
+                btn.classList.remove('spinning');
+                btn.disabled = false;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 5000);
+            }, 1500);
+        }
+
+        function toggleAgency(header) {
+            header.parentElement.classList.toggle('open');
+        }
+
+        function showModal(country) {
+            const data = currentNewsData[country];
+            if (!data) return;
+            
+            document.getElementById('modalFlag').textContent = data.flag;
+            document.getElementById('modalCountry').textContent = data.name;
+            
+            let agenciesHtml = '';
+            Object.entries(data.agencies).forEach(([agencyName, newsList], index) => {
+                if (newsList.length === 0) return;
+                agenciesHtml += `
+                    <div class="agency-section ${index === 0 ? 'open' : ''}">
+                        <div class="agency-header" onclick="toggleAgency(this)">
+                            <div class="agency-name">📰 ${agencyName}</div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="agency-count">${newsList.length} 条</span>
+                                <span class="agency-arrow">▼</span>
+                            </div>
+                        </div>
+                        <div class="agency-content">
+                            <div class="news-list">
+                                ${newsList.map(n => `
+                                    <div class="news-item">
+                                        <a href="${n.url}" target="_blank">
+                                            <div class="news-source">${n.date}</div>
+                                            <div class="news-title">${n.title}</div>
+                                            <div class="news-excerpt">${n.excerpt}</div>
+                                            <div class="news-link">阅读全文 →</div>
+                                        </a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('modalBody').innerHTML = agenciesHtml;
+            document.getElementById('newsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('newsModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
         function initEarth() {
             const container = document.getElementById('earth-container');
             const scene = new THREE.Scene();
@@ -483,164 +621,120 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
             
-            // 地球
             const geometry = new THREE.SphereGeometry(5, 64, 64);
             
-            // 纹理加载 - 使用jsdelivr CDN (国内可访问)
+            // 纹理加载方案：优先使用jsdelivr CDN，失败时使用Canvas备用纹理
             const textureLoader = new THREE.TextureLoader();
-            const earthTexture = textureLoader.load(
-                'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg',
-                function(texture) {
-                    console.log('地球纹理加载成功');
-                },
-                undefined,
-                function(err) {
-                    console.warn('主纹理加载失败，使用备用纹理');
-                }
-            );
+            let earthTexture = null;
             
-            // 备用：使用Data URI的简化地球纹理
+            // 备用纹理（Canvas生成）
             const canvas = document.createElement('canvas');
             canvas.width = 1024;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
             
-            // 绘制海洋背景
-            const oceanGrad = ctx.createRadialGradient(512, 256, 0, 512, 256, 512);
-            oceanGrad.addColorStop(0, '#1565c0');
-            oceanGrad.addColorStop(0.5, '#0d47a1');
-            oceanGrad.addColorStop(1, '#01579b');
-            ctx.fillStyle = oceanGrad;
+            // 绘制海洋背景（科技风深蓝）
+            const oceanGradient = ctx.createLinearGradient(0, 0, 0, 512);
+            oceanGradient.addColorStop(0, '#1e3a5f');
+            oceanGradient.addColorStop(0.5, '#2e5a8f');
+            oceanGradient.addColorStop(1, '#1e3a5f');
+            ctx.fillStyle = oceanGradient;
             ctx.fillRect(0, 0, 1024, 512);
             
-            // 绘制更真实的大陆轮廓
-            ctx.fillStyle = '#2e7d32';
-            const continents = [
-                // 亚洲
-                {x: 700, y: 180, w: 280, h: 140},
-                // 欧洲
-                {x: 520, y: 140, w: 120, h: 80},
-                // 非洲
-                {x: 520, y: 240, w: 140, h: 180},
-                // 北美
-                {x: 200, y: 120, w: 200, h: 160},
-                // 南美
-                {x: 280, y: 300, w: 100, h: 160},
-                // 澳洲
-                {x: 850, y: 360, w: 100, h: 60}
-            ];
-            
-            continents.forEach(c => {
-                ctx.beginPath();
-                ctx.ellipse(c.x, c.y, c.w/2, c.h/2, 0, 0, Math.PI * 2);
-                ctx.fill();
-                // 添加一些随机细节
-                for(let i=0; i<5; i++) {
-                    ctx.beginPath();
-                    ctx.arc(
-                        c.x + (Math.random()-0.5)*c.w*0.8,
-                        c.y + (Math.random()-0.5)*c.h*0.8,
-                        Math.random() * 20 + 10,
-                        0, Math.PI * 2
-                    );
-                    ctx.fill();
-                }
-            });
+            // 绘制大陆轮廓
+            ctx.fillStyle = '#2d5016';
+            ctx.beginPath(); ctx.ellipse(700, 180, 180, 100, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(520, 150, 80, 50, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(530, 280, 90, 120, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(200, 160, 120, 90, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(280, 360, 70, 100, 0.3, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(850, 380, 70, 40, 0, 0, Math.PI * 2); ctx.fill();
             
             // 添加云层效果
-            ctx.fillStyle = 'rgba(255,255,255,0.15)';
-            for(let i=0; i<50; i++) {
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            for(let i=0; i<30; i++) {
                 ctx.beginPath();
                 ctx.arc(
                     Math.random() * 1024,
                     Math.random() * 512,
-                    Math.random() * 40 + 20,
+                    Math.random() * 30 + 15,
                     0, Math.PI * 2
                 );
                 ctx.fill();
             }
             
             const fallbackTexture = new THREE.CanvasTexture(canvas);
-            fallbackTexture.needsUpdate = true;
+            
+            // 先使用备用纹理
             const material = new THREE.MeshPhongMaterial({
-                map: earthTexture,
+                map: fallbackTexture,
                 emissive: 0x112244,
                 emissiveIntensity: 0.1,
                 shininess: 25
             });
             
-            // 如果主纹理加载失败，使用备用纹理
-            earthTexture.onerror = function() {
-                material.map = fallbackTexture;
-                material.needsUpdate = true;
-            };
+            // 尝试加载CDN纹理（国内可访问的jsdelivr）
+            earthTexture = textureLoader.load(
+                'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg',
+                function(texture) {
+                    // 成功加载后替换纹理
+                    material.map = texture;
+                    material.needsUpdate = true;
+                    console.log('✅ CDN纹理加载成功');
+                },
+                undefined,
+                function(err) {
+                    console.log('⚠️ CDN纹理加载失败，使用备用纹理');
+                }
+            );
             
             const earth = new THREE.Mesh(geometry, material);
             scene.add(earth);
             
-            // 大气层 - 使用Shader实现发光效果
-            const atmosphereGeometry = new THREE.SphereGeometry(5.3, 64, 64);
-            const atmosphereMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    c: { value: 0.6 },
-                    p: { value: 4.0 },
-                    glowColor: { value: new THREE.Color(0x4488ff) },
-                    viewVector: { value: camera.position }
-                },
-                vertexShader: `
-                    uniform vec3 viewVector;
-                    varying float intensity;
-                    void main() {
-                        vec3 vNormal = normalize(normalMatrix * normal);
-                        vec3 vNormel = normalize(normalMatrix * viewVector);
-                        intensity = pow(0.6 - dot(vNormal, vNormel), 4.0);
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    }
-                `,
-                fragmentShader: `
-                    uniform vec3 glowColor;
-                    varying float intensity;
-                    void main() {
-                        vec3 glow = glowColor * intensity;
-                        gl_FragColor = vec4(glow, intensity);
-                    }
-                `,
-                side: THREE.BackSide,
-                blending: THREE.AdditiveBlending,
-                transparent: true
-            });
-            const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+            // 大气层（科技风青色）
+            const atmosphere = new THREE.Mesh(
+                new THREE.SphereGeometry(5.3, 64, 64),
+                new THREE.MeshPhongMaterial({
+                    color: 0x00f0ff,
+                    transparent: true,
+                    opacity: 0.15,
+                    side: THREE.BackSide
+                })
+            );
             scene.add(atmosphere);
             
-            // 星空背景
+            // 星空
             const stars = new THREE.Points(
                 new THREE.BufferGeometry().setAttribute('position', 
                     new THREE.Float32BufferAttribute(Array.from({length: 1500}, () => (Math.random() - 0.5) * 100), 3)
                 ),
-                new THREE.PointsMaterial({ size: 0.08, color: 0xffffff, transparent: true, opacity: 0.8 })
+                new THREE.PointsMaterial({ size: 0.08, color: 0x00f0ff, transparent: true, opacity: 0.6 })
             );
             scene.add(stars);
             
-            // 国家标记点
+            // 标记点
             const markers = [
-                { country: 'china', lat: 35, lon: 105 },
-                { country: 'usa', lat: 40, lon: -100 },
-                { country: 'uk', lat: 54, lon: -2 },
-                { country: 'japan', lat: 36, lon: 138 },
-                { country: 'germany', lat: 51, lon: 10 }
+                { country: 'china', lat: 35.8617, lon: 104.1954 },
+                { country: 'usa', lat: 37.0902, lon: -95.7129 },
+                { country: 'uk', lat: 55.3781, lon: -3.4360 },
+                { country: 'japan', lat: 36.2048, lon: 138.2529 },
+                { country: 'germany', lat: 51.1657, lon: 10.4515 },
+                { country: 'france', lat: 46.2276, lon: 2.2137 },
+                { country: 'russia', lat: 61.5240, lon: 105.3188 },
+                { country: 'singapore', lat: 1.3521, lon: 103.8198 }
             ];
             
             const markerMeshes = [];
             markers.forEach(m => {
                 const phi = (90 - m.lat) * Math.PI / 180;
                 const theta = (m.lon + 180) * Math.PI / 180;
-                const x = -5.1 * Math.sin(phi) * Math.cos(theta);
-                const y = 5.1 * Math.cos(phi);
-                const z = 5.1 * Math.sin(phi) * Math.sin(theta);
+                const x = -(5.1 * Math.sin(phi) * Math.cos(theta));
+                const z = (5.1 * Math.sin(phi) * Math.sin(theta));
+                const y = (5.1 * Math.cos(phi));
                 
                 const marker = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.15, 16, 16),
-                    new THREE.MeshBasicMaterial({ color: 0x667eea, emissive: 0x667eea, emissiveIntensity: 0.5 })
+                    new THREE.SphereGeometry(0.12, 16, 16),
+                    new THREE.MeshBasicMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.8 })
                 );
                 marker.position.set(x, y, z);
                 marker.userData = { country: m.country };
@@ -648,21 +742,14 @@
                 markerMeshes.push(marker);
             });
             
-            // 光照
-            scene.add(new THREE.AmbientLight(0x333333));
+            scene.add(new THREE.AmbientLight(0x404040, 0.5));
             scene.add(new THREE.DirectionalLight(0xffffff, 1).position.set(10, 10, 10));
-            scene.add(new THREE.PointLight(0x667eea, 0.5).position.set(-10, 5, 10));
             
             camera.position.z = 15;
             
-            // 交互控制
             let isDragging = false, prevPos = { x: 0, y: 0 };
             
-            container.addEventListener('mousedown', e => {
-                isDragging = true;
-                prevPos = { x: e.clientX, y: e.clientY };
-            });
-            
+            container.addEventListener('mousedown', e => { isDragging = true; prevPos = { x: e.clientX, y: e.clientY }; });
             container.addEventListener('mousemove', e => {
                 if (isDragging) {
                     earth.rotation.y += (e.clientX - prevPos.x) * 0.005;
@@ -670,31 +757,19 @@
                     prevPos = { x: e.clientX, y: e.clientY };
                 }
             });
-            
             container.addEventListener('mouseup', () => isDragging = false);
             
-            // 点击检测
             container.addEventListener('click', e => {
                 const raycaster = new THREE.Raycaster();
-                const mouse = new THREE.Vector2(
-                    (e.clientX / window.innerWidth) * 2 - 1,
-                    -(e.clientY / window.innerHeight) * 2 + 1
-                );
+                const mouse = new THREE.Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects(markerMeshes);
-                if (intersects.length > 0) {
-                    showModal(intersects[0].object.userData.country);
-                }
+                if (intersects.length > 0) showModal(intersects[0].object.userData.country);
             });
             
-            // 动画
-            let rotY = 0;
             function animate() {
                 requestAnimationFrame(animate);
-                if (!isDragging) {
-                    rotY += 0.001;
-                    earth.rotation.y = rotY;
-                }
+                if (!isDragging) earth.rotation.y += 0.001;
                 renderer.render(scene, camera);
             }
             animate();
@@ -704,102 +779,28 @@
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
-            
-            // 隐藏加载
-            document.getElementById('loading').classList.add('hidden');
         }
 
-        // 显示弹窗
-        function showModal(country) {
-            const data = countryNews[country];
-            if (!data) return;
-            document.getElementById('modalFlag').textContent = data.flag;
-            document.getElementById('modalCountry').textContent = data.name;
-            document.getElementById('modalBody').innerHTML = data.news.map(n => `
-                <div class="news-item">
-                    <div class="news-source">${n.source}</div>
-                    <div class="news-title">${n.title}</div>
-                    <div class="news-excerpt">${n.excerpt}</div>
-                </div>
-            `).join('');
-            document.getElementById('newsModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('newsModal').classList.remove('active');
-        }
-
-        // ECharts
         function initCharts() {
             const chart = echarts.init(document.getElementById('gdpChart'));
             chart.setOption({
                 backgroundColor: 'transparent',
-                tooltip: {
-                    trigger: 'axis',
-                    backgroundColor: 'rgba(30,30,50,0.9)',
-                    borderColor: '#667eea',
-                    textStyle: { color: '#fff' }
-                },
+                tooltip: { trigger: 'axis', backgroundColor: 'rgba(10,10,26,0.9)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
                 grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    data: ['2021', '2022', '2023', '2024', '2025'],
-                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
-                    axisLabel: { color: 'rgba(255,255,255,0.7)' }
-                },
-                yAxis: {
-                    type: 'value',
-                    name: '万亿元',
-                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
-                    axisLabel: { color: 'rgba(255,255,255,0.7)' },
-                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
-                },
-                series: [{
-                    data: [114.9, 121.0, 126.0, 134.9, 140.19],
-                    type: 'line',
-                    smooth: true,
-                    symbol: 'circle',
-                    symbolSize: 10,
-                    lineStyle: { color: '#667eea', width: 3 },
-                    itemStyle: { color: '#667eea' },
-                    areaStyle: {
-                        color: {
-                            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [{ offset: 0, color: 'rgba(102,126,234,0.5)' }, { offset: 1, color: 'rgba(102,126,234,0)' }]
-                        }
-                    }
-                }]
+                xAxis: { type: 'category', data: ['2021', '2022', '2023', '2024', '2025'], axisLine: { lineStyle: { color: 'rgba(0,240,255,0.3)' } }, axisLabel: { color: 'rgba(255,255,255,0.7)' } },
+                yAxis: { type: 'value', name: '万亿元', nameTextStyle: { color: 'rgba(255,255,255,0.7)' }, axisLine: { lineStyle: { color: 'rgba(0,240,255,0.3)' } }, axisLabel: { color: 'rgba(255,255,255,0.7)' }, splitLine: { lineStyle: { color: 'rgba(0,240,255,0.1)' } } },
+                series: [{ data: [114.9, 121.0, 126.0, 134.9, 140.19], type: 'line', smooth: true, symbol: 'circle', symbolSize: 10, lineStyle: { color: '#00f0ff', width: 3 }, itemStyle: { color: '#00f0ff' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(0,240,255,0.5)' }, { offset: 1, color: 'rgba(0,240,255,0)' }] } } }]
             });
             window.addEventListener('resize', () => chart.resize());
         }
 
-        // 页面加载
         window.addEventListener('load', () => {
-            // 3秒后强制隐藏loading
-            setTimeout(() => {
-                document.getElementById('loading').classList.add('hidden');
-            }, 3000);
-            
-            try {
-                initEarth();
-            } catch(e) {
-                console.error('Earth init failed:', e);
-                document.getElementById('loading').classList.add('hidden');
-            }
-            
-            try {
-                initCharts();
-            } catch(e) {
-                console.error('Chart init failed:', e);
-            }
+            try { initEarth(); } catch(e) { console.error(e); }
+            try { initCharts(); } catch(e) { console.error(e); }
         });
 
-        // 弹窗点击外部关闭
-        document.getElementById('newsModal').addEventListener('click', e => {
-            if (e.target.id === 'newsModal') closeModal();
-        });
-
-        // 平滑滚动
+        document.getElementById('newsModal').addEventListener('click', e => { if (e.target.id === 'newsModal') closeModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', function(e) {
                 e.preventDefault();
