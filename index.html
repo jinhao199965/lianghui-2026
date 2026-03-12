@@ -486,49 +486,130 @@
             // 地球
             const geometry = new THREE.SphereGeometry(5, 64, 64);
             
-            // 使用Canvas创建地球纹理
+            // 纹理加载 - 使用jsdelivr CDN (国内可访问)
+            const textureLoader = new THREE.TextureLoader();
+            const earthTexture = textureLoader.load(
+                'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg',
+                function(texture) {
+                    console.log('地球纹理加载成功');
+                },
+                undefined,
+                function(err) {
+                    console.warn('主纹理加载失败，使用备用纹理');
+                }
+            );
+            
+            // 备用：使用Data URI的简化地球纹理
             const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 256;
+            canvas.width = 1024;
+            canvas.height = 512;
             const ctx = canvas.getContext('2d');
             
-            // 绘制海洋
-            const gradient = ctx.createLinearGradient(0, 0, 0, 256);
-            gradient.addColorStop(0, '#1a237e');
-            gradient.addColorStop(0.5, '#0d47a1');
-            gradient.addColorStop(1, '#1a237e');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 512, 256);
+            // 绘制海洋背景
+            const oceanGrad = ctx.createRadialGradient(512, 256, 0, 512, 256, 512);
+            oceanGrad.addColorStop(0, '#1565c0');
+            oceanGrad.addColorStop(0.5, '#0d47a1');
+            oceanGrad.addColorStop(1, '#01579b');
+            ctx.fillStyle = oceanGrad;
+            ctx.fillRect(0, 0, 1024, 512);
             
-            // 绘制大陆（简化）
+            // 绘制更真实的大陆轮廓
             ctx.fillStyle = '#2e7d32';
-            for (let i = 0; i < 30; i++) {
+            const continents = [
+                // 亚洲
+                {x: 700, y: 180, w: 280, h: 140},
+                // 欧洲
+                {x: 520, y: 140, w: 120, h: 80},
+                // 非洲
+                {x: 520, y: 240, w: 140, h: 180},
+                // 北美
+                {x: 200, y: 120, w: 200, h: 160},
+                // 南美
+                {x: 280, y: 300, w: 100, h: 160},
+                // 澳洲
+                {x: 850, y: 360, w: 100, h: 60}
+            ];
+            
+            continents.forEach(c => {
                 ctx.beginPath();
-                ctx.arc(Math.random() * 512, Math.random() * 256, Math.random() * 60 + 30, 0, Math.PI * 2);
+                ctx.ellipse(c.x, c.y, c.w/2, c.h/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // 添加一些随机细节
+                for(let i=0; i<5; i++) {
+                    ctx.beginPath();
+                    ctx.arc(
+                        c.x + (Math.random()-0.5)*c.w*0.8,
+                        c.y + (Math.random()-0.5)*c.h*0.8,
+                        Math.random() * 20 + 10,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            });
+            
+            // 添加云层效果
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            for(let i=0; i<50; i++) {
+                ctx.beginPath();
+                ctx.arc(
+                    Math.random() * 1024,
+                    Math.random() * 512,
+                    Math.random() * 40 + 20,
+                    0, Math.PI * 2
+                );
                 ctx.fill();
             }
             
-            const texture = new THREE.CanvasTexture(canvas);
+            const fallbackTexture = new THREE.CanvasTexture(canvas);
+            fallbackTexture.needsUpdate = true;
             const material = new THREE.MeshPhongMaterial({
-                map: texture,
+                map: earthTexture,
                 emissive: 0x112244,
-                emissiveIntensity: 0.2,
+                emissiveIntensity: 0.1,
                 shininess: 25
             });
+            
+            // 如果主纹理加载失败，使用备用纹理
+            earthTexture.onerror = function() {
+                material.map = fallbackTexture;
+                material.needsUpdate = true;
+            };
             
             const earth = new THREE.Mesh(geometry, material);
             scene.add(earth);
             
-            // 大气层
-            const atmosphere = new THREE.Mesh(
-                new THREE.SphereGeometry(5.2, 64, 64),
-                new THREE.MeshPhongMaterial({
-                    color: 0x667eea,
-                    transparent: true,
-                    opacity: 0.15,
-                    side: THREE.BackSide
-                })
-            );
+            // 大气层 - 使用Shader实现发光效果
+            const atmosphereGeometry = new THREE.SphereGeometry(5.3, 64, 64);
+            const atmosphereMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    c: { value: 0.6 },
+                    p: { value: 4.0 },
+                    glowColor: { value: new THREE.Color(0x4488ff) },
+                    viewVector: { value: camera.position }
+                },
+                vertexShader: `
+                    uniform vec3 viewVector;
+                    varying float intensity;
+                    void main() {
+                        vec3 vNormal = normalize(normalMatrix * normal);
+                        vec3 vNormel = normalize(normalMatrix * viewVector);
+                        intensity = pow(0.6 - dot(vNormal, vNormel), 4.0);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform vec3 glowColor;
+                    varying float intensity;
+                    void main() {
+                        vec3 glow = glowColor * intensity;
+                        gl_FragColor = vec4(glow, intensity);
+                    }
+                `,
+                side: THREE.BackSide,
+                blending: THREE.AdditiveBlending,
+                transparent: true
+            });
+            const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
             scene.add(atmosphere);
             
             // 星空背景
