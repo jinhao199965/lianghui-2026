@@ -623,70 +623,120 @@
             
             const geometry = new THREE.SphereGeometry(5, 64, 64);
             
-            // 纹理加载方案：优先使用jsdelivr CDN，失败时使用Canvas备用纹理
-            const textureLoader = new THREE.TextureLoader();
-            let earthTexture = null;
+            // 程序生成地球纹理 - 不依赖外部图片
+            function createEarthTexture() {
+                const size = 2048;
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size / 2;
+                const ctx = canvas.getContext('2d');
+                
+                // 1. 绘制海洋（径向渐变）
+                const oceanGrad = ctx.createRadialGradient(size/2, size/4, 0, size/2, size/4, size/2);
+                oceanGrad.addColorStop(0, '#1a4d6e');
+                oceanGrad.addColorStop(0.4, '#0d2d4a');
+                oceanGrad.addColorStop(1, '#051423');
+                ctx.fillStyle = oceanGrad;
+                ctx.fillRect(0, 0, size, size/2);
+                
+                // 2. 绘制大陆（更准确的世界地图轮廓）
+                ctx.fillStyle = '#1a3d1a';
+                
+                // 北美洲
+                drawContinent(ctx, [
+                    [180, 120], [280, 100], [320, 140], [300, 200], [250, 220], [200, 180]
+                ], size);
+                // 南美洲
+                drawContinent(ctx, [
+                    [260, 280], [300, 260], [320, 320], [290, 400], [260, 380]
+                ], size);
+                // 欧洲
+                drawContinent(ctx, [
+                    [480, 100], [540, 90], [560, 130], [520, 150], [480, 140]
+                ], size);
+                // 非洲
+                drawContinent(ctx, [
+                    [500, 180], [580, 170], [600, 260], [560, 340], [510, 300], [490, 240]
+                ], size);
+                // 亚洲
+                drawContinent(ctx, [
+                    [600, 80], [900, 70], [980, 120], [950, 200], [850, 220], 
+                    [750, 200], [680, 180], [620, 140]
+                ], size);
+                // 澳洲
+                drawContinent(ctx, [
+                    [850, 320], [950, 310], [970, 360], [920, 380], [860, 370]
+                ], size);
+                // 格陵兰
+                drawContinent(ctx, [
+                    [360, 60], [420, 50], [430, 90], [380, 100]
+                ], size);
+                
+                // 3. 添加地形细节（山脉/森林）
+                ctx.fillStyle = '#2d5a2d';
+                for(let i=0; i<200; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size/2;
+                    const r = Math.random() * 15 + 5;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // 4. 添加云层
+                ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                for(let i=0; i<80; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size/2;
+                    const w = Math.random() * 100 + 50;
+                    const h = Math.random() * 30 + 15;
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, w, h, Math.random()*0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // 5. 添加夜景灯光效果（城市灯光）
+                ctx.fillStyle = 'rgba(255, 200, 100, 0.15)';
+                const cities = [
+                    [750, 160], [680, 140], [550, 110], [520, 130], // 东亚/欧洲
+                    [240, 160], [220, 180], [280, 140], // 北美
+                    [280, 320], [300, 340], // 南美
+                    [530, 240], // 非洲
+                    [900, 340]  // 澳洲
+                ];
+                cities.forEach(([x, y]) => {
+                    for(let i=0; i<5; i++) {
+                        ctx.beginPath();
+                        ctx.arc(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*30, 
+                                Math.random() * 3 + 1, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+                
+                return new THREE.CanvasTexture(canvas);
+            }
             
-            // 备用纹理（Canvas生成）
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            
-            // 绘制海洋背景（科技风深蓝）
-            const oceanGradient = ctx.createLinearGradient(0, 0, 0, 512);
-            oceanGradient.addColorStop(0, '#1e3a5f');
-            oceanGradient.addColorStop(0.5, '#2e5a8f');
-            oceanGradient.addColorStop(1, '#1e3a5f');
-            ctx.fillStyle = oceanGradient;
-            ctx.fillRect(0, 0, 1024, 512);
-            
-            // 绘制大陆轮廓
-            ctx.fillStyle = '#2d5016';
-            ctx.beginPath(); ctx.ellipse(700, 180, 180, 100, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(520, 150, 80, 50, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(530, 280, 90, 120, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(200, 160, 120, 90, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(280, 360, 70, 100, 0.3, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(850, 380, 70, 40, 0, 0, Math.PI * 2); ctx.fill();
-            
-            // 添加云层效果
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            for(let i=0; i<30; i++) {
+            function drawContinent(ctx, points, size) {
                 ctx.beginPath();
-                ctx.arc(
-                    Math.random() * 1024,
-                    Math.random() * 512,
-                    Math.random() * 30 + 15,
-                    0, Math.PI * 2
-                );
+                const scaleX = size / 1024;
+                const scaleY = (size/2) / 512;
+                ctx.moveTo(points[0][0] * scaleX, points[0][1] * scaleY);
+                for(let i=1; i<points.length; i++) {
+                    ctx.lineTo(points[i][0] * scaleX, points[i][1] * scaleY);
+                }
+                ctx.closePath();
                 ctx.fill();
             }
             
-            const fallbackTexture = new THREE.CanvasTexture(canvas);
+            const earthTexture = createEarthTexture();
             
-            // 先使用备用纹理
             const material = new THREE.MeshPhongMaterial({
-                map: fallbackTexture,
-                emissive: 0x112244,
-                emissiveIntensity: 0.1,
-                shininess: 25
+                map: earthTexture,
+                emissive: 0x0a1a2a,
+                emissiveIntensity: 0.15,
+                shininess: 20,
+                specular: new THREE.Color(0x224466)
             });
-            
-            // 尝试加载CDN纹理（国内可访问的jsdelivr）
-            earthTexture = textureLoader.load(
-                'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg',
-                function(texture) {
-                    // 成功加载后替换纹理
-                    material.map = texture;
-                    material.needsUpdate = true;
-                    console.log('✅ CDN纹理加载成功');
-                },
-                undefined,
-                function(err) {
-                    console.log('⚠️ CDN纹理加载失败，使用备用纹理');
-                }
-            );
             
             const earth = new THREE.Mesh(geometry, material);
             scene.add(earth);
