@@ -6,6 +6,8 @@
     <title>2026全国两会 · 全球视野</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- 天地图API -->
+    <script src="https://api.tianditu.gov.cn/api?v=4.0&tk=174705aebfe31b79b3587279e211cb9a"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -27,10 +29,7 @@
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
                 linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
@@ -40,49 +39,30 @@
         }
         
         #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--ai-darker);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s;
         }
-        
         #loading.hidden { opacity: 0; pointer-events: none; }
-        
         .ai-loader {
-            width: 80px;
-            height: 80px;
+            width: 80px; height: 80px;
             border: 3px solid rgba(0, 240, 255, 0.2);
             border-top-color: var(--ai-cyan);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
         @keyframes spin { to { transform: rotate(360deg); } }
-        
         .loading-text {
-            margin-top: 20px;
-            font-size: 14px;
-            color: var(--ai-cyan);
-            letter-spacing: 2px;
+            margin-top: 20px; font-size: 14px;
+            color: var(--ai-cyan); letter-spacing: 2px;
         }
         
         nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            position: fixed; top: 0; left: 0; right: 0;
             padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
             background: var(--ai-glass);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(0, 240, 255, 0.1);
@@ -90,53 +70,56 @@
         }
         
         .logo {
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.3rem; font-weight: 700;
             background: linear-gradient(135deg, var(--ai-cyan) 0%, var(--ai-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        .refresh-btn {
+        .nav-right {
+            display: flex; gap: 15px; align-items: center;
+        }
+        
+        /* 2D/3D切换按钮 */
+        .view-toggle {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(179, 71, 255, 0.2) 100%);
-            color: var(--ai-cyan);
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(0, 240, 255, 0.3);
             border-radius: 25px;
+            overflow: hidden;
+        }
+        
+        .view-toggle button {
+            padding: 8px 20px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s;
         }
         
-        .refresh-btn:hover {
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        .view-toggle button.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.3) 0%, rgba(179, 71, 255, 0.3) 100%);
+            color: var(--ai-cyan);
+        }
+        
+        .view-toggle button:hover:not(.active) {
+            color: #fff;
+        }
+        
+        .refresh-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(179, 71, 255, 0.2) 100%);
+            color: var(--ai-cyan);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
         }
         
         .refresh-btn.spinning .refresh-icon { animation: spin 1s linear infinite; }
-        
-        .update-toast {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: var(--ai-glass);
-            border: 1px solid var(--ai-cyan);
-            border-radius: 12px;
-            padding: 20px;
-            font-size: 14px;
-            z-index: 3000;
-            transform: translateX(150%);
-            transition: transform 0.3s ease;
-            backdrop-filter: blur(20px);
-            max-width: 350px;
-        }
-        
-        .update-toast.show { transform: translateX(0); }
-        .update-toast h4 { color: var(--ai-cyan); margin-bottom: 10px; }
-        .update-toast ul { list-style: none; font-size: 13px; }
-        .update-toast li { padding: 4px 0; color: rgba(255, 255, 255, 0.8); }
         
         .hero {
             position: relative;
@@ -146,14 +129,29 @@
             padding: 0 0 80px 60px;
         }
         
+        /* 3D地球容器 */
         #earth-container {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: 1;
         }
+        
+        /* 2D地图容器 */
+        #map-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            display: none;
+        }
+        
+        #map-container.active {
+            display: block;
+        }
+        
+        /* 天地图样式覆盖 */
+        .tdt-map { filter: invert(1) hue-rotate(180deg) brightness(0.8); }
         
         .hero-content {
             position: relative;
@@ -161,202 +159,164 @@
             max-width: 500px;
             pointer-events: none;
         }
-        
         .hero-content > * { pointer-events: auto; }
         
         .hero-subtitle {
-            font-size: 12px;
-            letter-spacing: 0.4em;
+            font-size: 12px; letter-spacing: 0.4em;
             text-transform: uppercase;
-            color: var(--ai-cyan);
-            margin-bottom: 15px;
+            color: var(--ai-cyan); margin-bottom: 15px;
         }
-        
         .hero-title {
-            font-size: 3rem;
-            font-weight: 900;
-            line-height: 1.2;
+            font-size: 3rem; font-weight: 900; line-height: 1.2;
             margin-bottom: 20px;
             background: linear-gradient(135deg, #fff 0%, var(--ai-cyan) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .hero-desc {
-            font-size: 1rem;
-            opacity: 0.8;
-            line-height: 1.8;
-            margin-bottom: 30px;
+            font-size: 1rem; opacity: 0.8;
+            line-height: 1.8; margin-bottom: 30px;
             color: rgba(255, 255, 255, 0.7);
         }
-        
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            display: inline-flex; align-items: center; gap: 10px;
             padding: 12px 30px;
             background: linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(179, 71, 255, 0.2) 100%);
-            color: var(--ai-cyan);
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 500;
+            color: var(--ai-cyan); text-decoration: none;
+            border-radius: 30px; font-weight: 500;
             border: 1px solid rgba(0, 240, 255, 0.3);
         }
-        
         .instruction {
-            position: absolute;
-            bottom: 30px;
-            right: 40px;
+            position: absolute; bottom: 30px; right: 40px;
             background: var(--ai-glass);
             padding: 12px 25px;
-            border-radius: 30px;
-            font-size: 13px;
-            color: var(--ai-cyan);
-            z-index: 10;
+            border-radius: 30px; font-size: 13px;
+            color: var(--ai-cyan); z-index: 10;
             border: 1px solid rgba(0, 240, 255, 0.2);
         }
         
         .modal {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(5, 5, 16, 0.9);
             z-index: 2000;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; align-items: center;
             padding: 20px;
         }
-        
         .modal.active { display: flex; }
-        
         .modal-content {
             background: var(--ai-glass);
             border-radius: 20px;
-            max-width: 800px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
+            max-width: 800px; width: 100%;
+            max-height: 85vh; overflow-y: auto;
             border: 1px solid rgba(0, 240, 255, 0.3);
         }
-        
         .modal-header {
             padding: 25px;
             border-bottom: 1px solid rgba(0, 240, 255, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        
         .modal-title {
             font-size: 1.5rem;
             background: linear-gradient(135deg, #fff 0%, var(--ai-cyan) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .modal-close {
-            background: none;
-            border: none;
-            color: var(--ai-cyan);
-            font-size: 2rem;
+            background: none; border: none;
+            color: var(--ai-cyan); font-size: 2rem;
             cursor: pointer;
         }
-        
         .modal-body { padding: 25px; }
         
         .agency-section {
             margin-bottom: 15px;
             border: 1px solid rgba(0, 240, 255, 0.2);
-            border-radius: 12px;
-            overflow: hidden;
+            border-radius: 12px; overflow: hidden;
             background: rgba(0, 0, 0, 0.2);
         }
-        
         .agency-header {
             padding: 15px 20px;
             background: linear-gradient(135deg, rgba(0, 240, 255, 0.1) 0%, rgba(179, 71, 255, 0.1) 100%);
             cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        
         .agency-name { font-size: 1.1rem; font-weight: 600; color: var(--ai-cyan); }
-        .agency-count { background: rgba(0, 240, 255, 0.2); color: var(--ai-cyan); padding: 4px 12px; border-radius: 15px; font-size: 12px; }
+        .agency-count {
+            background: rgba(0, 240, 255, 0.2);
+            color: var(--ai-cyan); padding: 4px 12px;
+            border-radius: 15px; font-size: 12px;
+        }
         .agency-arrow { color: var(--ai-cyan); transition: transform 0.3s; }
         .agency-section.open .agency-arrow { transform: rotate(180deg); }
-        
         .agency-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .agency-section.open .agency-content { max-height: 2000px; }
-        
         .news-list { padding: 10px; }
-        
         .news-item {
-            padding: 15px;
-            margin-bottom: 10px;
+            padding: 15px; margin-bottom: 10px;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 10px;
             border-left: 3px solid var(--ai-cyan);
         }
-        
         .news-item a { text-decoration: none; color: inherit; display: block; }
         .news-source { color: var(--ai-purple); font-size: 0.8rem; margin-bottom: 6px; }
         .news-title { font-size: 1rem; margin-bottom: 8px; color: #fff; }
         .news-excerpt { font-size: 0.85rem; opacity: 0.7; line-height: 1.5; margin-bottom: 8px; }
         .news-link { color: var(--ai-cyan); font-size: 0.8rem; }
         
-        .section { padding: 100px 50px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
-        
+        .section {
+            padding: 100px 50px;
+            max-width: 1200px; margin: 0 auto;
+            position: relative; z-index: 1;
+        }
         .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 50px;
+            font-size: 2.5rem; font-weight: 700;
+            text-align: center; margin-bottom: 50px;
             background: linear-gradient(135deg, #fff 0%, var(--ai-cyan) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
-        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
         .stat-card {
             background: var(--ai-glass);
             border: 1px solid rgba(0, 240, 255, 0.2);
-            border-radius: 20px;
-            padding: 40px;
+            border-radius: 20px; padding: 40px;
             text-align: center;
         }
-        
         .stat-number {
-            font-size: 3.5rem;
-            font-weight: 900;
+            font-size: 3.5rem; font-weight: 900;
             background: linear-gradient(135deg, var(--ai-cyan) 0%, var(--ai-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .chart-container {
             height: 400px;
             background: var(--ai-glass);
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 20px; padding: 20px;
             border: 1px solid rgba(0, 240, 255, 0.2);
         }
-        
-        .media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
-        
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
         .media-card {
             background: var(--ai-glass);
-            border-radius: 16px;
-            padding: 25px;
+            border-radius: 16px; padding: 25px;
             border: 1px solid rgba(0, 240, 255, 0.2);
         }
-        
         .media-card h3 { color: var(--ai-cyan); margin-bottom: 15px; }
-        .media-card a { color: rgba(255, 255, 255, 0.8); text-decoration: none; display: block; padding: 10px 0; border-bottom: 1px solid rgba(0, 240, 255, 0.1); }
+        .media-card a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none; display: block;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+        }
         .media-card a:hover { color: var(--ai-cyan); }
         
         @media (max-width: 768px) {
@@ -364,6 +324,9 @@
             .hero-title { font-size: 2rem; }
             .section { padding: 60px 20px; }
             nav { padding: 12px 20px; }
+            .nav-right { gap: 10px; }
+            .view-toggle button { padding: 6px 14px; font-size: 12px; }
+            .refresh-btn { padding: 6px 12px; font-size: 12px; }
             .instruction { right: 20px; bottom: 20px; font-size: 11px; }
         }
     </style>
@@ -374,31 +337,36 @@
         <div class="loading-text">INITIALIZING AI SYSTEM...</div>
     </div>
 
-    <div class="update-toast" id="updateToast">
-        <h4>🔄 新闻数据更新完成</h4>
-        <ul id="updateList"></ul>
-    </div>
-
     <nav>
         <div class="logo">两会 · 全球视野</div>
-        <button class="refresh-btn" id="refreshBtn" onclick="refreshNews()">
-            <span class="refresh-icon">↻</span>
-            <span>刷新新闻</span>
-        </button>
+        <div class="nav-right">
+            <div class="view-toggle">
+                <button id="btn-3d" class="active" onclick="switchView('3d')">3D 地球</button>
+                <button id="btn-2d" onclick="switchView('2d')">2D 地图</button>
+            </div>
+            <button class="refresh-btn" id="refreshBtn" onclick="refreshNews()">
+                <span class="refresh-icon">↻</span>
+                <span>刷新</span>
+            </button>
+        </div>
     </nav>
 
     <section class="hero">
+        <!-- 3D地球容器 -->
         <div id="earth-container"></div>
+        <!-- 2D地图容器 -->
+        <div id="map-container"></div>
+        
         <div class="hero-content">
             <div class="hero-subtitle">GLOBAL PERSPECTIVE 2026</div>
             <h1 class="hero-title">2026全国两会<br>世界在看</h1>
             <p class="hero-desc">
                 "十五五"开局之年，全球目光聚焦中国。<br>
-                拖动旋转地球，点击光点查看各国报道。
+                <span id="view-hint">拖动旋转地球，点击光点查看各国报道。</span>
             </p>
             <a href="#stats" class="btn">探索数据 →</a>
         </div>
-        <div class="instruction">🌍 拖动旋转 · 点击光点查看</div>
+        <div class="instruction" id="instruction-text">🌍 拖动旋转 · 点击光点查看</div>
     </section>
 
     <div class="modal" id="newsModal">
@@ -460,14 +428,268 @@
     </section>
 
     <script>
-        // 隐藏加载 - 5秒超时保证
-        setTimeout(() => {
-            document.getElementById('loading').classList.add('hidden');
-        }, 3000);
-
+        // ==================== 全局变量 ====================
+        let currentView = '3d';
+        let map = null;
+        let earthScene = null;
         let currentNewsData = {};
         let previousNewsCounts = {};
-
+        
+        // ==================== 2D/3D切换 ====================
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('btn-3d').classList.toggle('active', view === '3d');
+            document.getElementById('btn-2d').classList.toggle('active', view === '2d');
+            
+            const earthContainer = document.getElementById('earth-container');
+            const mapContainer = document.getElementById('map-container');
+            const hint = document.getElementById('view-hint');
+            const instruction = document.getElementById('instruction-text');
+            
+            if (view === '3d') {
+                earthContainer.style.display = 'block';
+                mapContainer.classList.remove('active');
+                hint.textContent = '拖动旋转地球，点击光点查看各国报道。';
+                instruction.textContent = '🌍 拖动旋转 · 点击光点查看';
+                if (map) {
+                    mapContainer.style.display = 'none';
+                }
+            } else {
+                earthContainer.style.display = 'none';
+                mapContainer.classList.add('active');
+                mapContainer.style.display = 'block';
+                hint.textContent = '点击地图上的标记查看各国报道。';
+                instruction.textContent = '🗺️ 点击标记 · 查看报道';
+                initMap();
+            }
+        }
+        
+        // ==================== 天地图2D地图 ====================
+        function initMap() {
+            if (map) return;
+            
+            const mapContainer = document.getElementById('map-container');
+            
+            map = new T.Map(mapContainer, {
+                projection: 'EPSG:3857',
+                center: new T.LngLat(105, 35),
+                zoom: 2,
+                minZoom: 1,
+                maxZoom: 18
+            });
+            
+            // 添加卫星影像图层
+            const imageLayer = new T.TileLayer(
+                'https://t0.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=174705aebfe31b79b3587279e211cb9a'
+            );
+            map.addLayer(imageLayer);
+            
+            // 添加标注图层
+            const labelLayer = new T.TileLayer(
+                'https://t0.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=174705aebfe31b79b3587279e211cb9a'
+            );
+            map.addLayer(labelLayer);
+            
+            // 添加国家标记
+            const markers = [
+                { country: 'china', lng: 104.1954, lat: 35.8617, name: '中国' },
+                { country: 'usa', lng: -95.7129, lat: 37.0902, name: '美国' },
+                { country: 'uk', lng: -3.4360, lat: 55.3781, name: '英国' },
+                { country: 'japan', lng: 138.2529, lat: 36.2048, name: '日本' },
+                { country: 'germany', lng: 10.4515, lat: 51.1657, name: '德国' },
+                { country: 'france', lng: 2.2137, lat: 46.2276, name: '法国' },
+                { country: 'russia', lng: 105.3188, lat: 61.5240, name: '俄罗斯' },
+                { country: 'singapore', lng: 103.8198, lat: 1.3521, name: '新加坡' }
+            ];
+            
+            markers.forEach(m => {
+                const marker = new T.Marker(new T.LngLat(m.lng, m.lat), {
+                    title: m.name
+                });
+                marker.addEventListener('click', () => showModal(m.country));
+                map.addOverLay(marker);
+                
+                // 添加标签
+                const label = new T.Label({
+                    text: m.name,
+                    position: new T.LngLat(m.lng, m.lat),
+                    offset: new T.Point(0, -25)
+                });
+                label.setStyle({
+                    color: '#00f0ff',
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    border: '1px solid #00f0ff',
+                    padding: '5px 10px',
+                    borderRadius: '4px',
+                    fontSize: '12px'
+                });
+                map.addOverLay(label);
+            });
+        }
+        
+        // ==================== Three.js 3D地球 ====================
+        function initEarth() {
+            const container = document.getElementById('earth-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+            
+            earthScene = { scene, camera, renderer };
+            
+            const geometry = new THREE.SphereGeometry(5, 64, 64);
+            const textureLoader = new THREE.TextureLoader();
+            
+            // 备用Canvas纹理
+            const canvas = document.createElement('canvas');
+            canvas.width = 2048;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            const oceanGrad = ctx.createLinearGradient(0, 0, 0, 1024);
+            oceanGrad.addColorStop(0, '#1a365d');
+            oceanGrad.addColorStop(0.5, '#0d2847');
+            oceanGrad.addColorStop(1, '#1a365d');
+            ctx.fillStyle = oceanGrad;
+            ctx.fillRect(0, 0, 2048, 1024);
+            ctx.fillStyle = '#2d4a1e';
+            const continents = [
+                {x: 1400, y: 360, r: 280}, {x: 1080, y: 200, r: 120}, {x: 1100, y: 480, r: 160},
+                {x: 400, y: 320, r: 200}, {x: 560, y: 720, r: 140}, {x: 1700, y: 720, r: 100}
+            ];
+            continents.forEach(c => {
+                ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fill();
+            });
+            const fallbackTexture = new THREE.CanvasTexture(canvas);
+            
+            const material = new THREE.MeshPhongMaterial({
+                map: fallbackTexture,
+                emissive: 0x111827,
+                emissiveIntensity: 0.2,
+                shininess: 25
+            });
+            
+            // 国内CDN源
+            const cdnSources = [
+                'https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg',
+                'https://lib.baomitu.com/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg',
+                'https://registry.npmmirror.com/three/0.160.0/files/examples/textures/planets/earth_atmos_2048.jpg',
+                'https://cdn.bootcdn.net/ajax/libs/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg'
+            ];
+            
+            let currentSource = 0;
+            function tryLoadTexture() {
+                if (currentSource >= cdnSources.length) return;
+                const url = cdnSources[currentSource];
+                textureLoader.load(url,
+                    function(texture) {
+                        material.map = texture;
+                        material.needsUpdate = true;
+                    },
+                    undefined,
+                    function() {
+                        currentSource++;
+                        tryLoadTexture();
+                    }
+                );
+            }
+            tryLoadTexture();
+            
+            const earth = new THREE.Mesh(geometry, material);
+            scene.add(earth);
+            
+            // 大气层
+            const atmosphere = new THREE.Mesh(
+                new THREE.SphereGeometry(5.3, 64, 64),
+                new THREE.MeshPhongMaterial({
+                    color: 0x00f0ff,
+                    transparent: true,
+                    opacity: 0.15,
+                    side: THREE.BackSide
+                })
+            );
+            scene.add(atmosphere);
+            
+            // 星空
+            const stars = new THREE.Points(
+                new THREE.BufferGeometry().setAttribute('position', 
+                    new THREE.Float32BufferAttribute(Array.from({length: 1500}, () => (Math.random() - 0.5) * 100), 3)
+                ),
+                new THREE.PointsMaterial({ size: 0.08, color: 0x00f0ff, transparent: true, opacity: 0.6 })
+            );
+            scene.add(stars);
+            
+            // 国家标记
+            const markers = [
+                { country: 'china', lat: 35.8617, lon: 104.1954 },
+                { country: 'usa', lat: 37.0902, lon: -95.7129 },
+                { country: 'uk', lat: 55.3781, lon: -3.4360 },
+                { country: 'japan', lat: 36.2048, lon: 138.2529 },
+                { country: 'germany', lat: 51.1657, lon: 10.4515 },
+                { country: 'france', lat: 46.2276, lon: 2.2137 },
+                { country: 'russia', lat: 61.5240, lon: 105.3188 },
+                { country: 'singapore', lat: 1.3521, lon: 103.8198 }
+            ];
+            
+            const markerMeshes = [];
+            markers.forEach(m => {
+                const phi = (90 - m.lat) * Math.PI / 180;
+                const theta = (m.lon + 180) * Math.PI / 180;
+                const x = -(5.1 * Math.sin(phi) * Math.cos(theta));
+                const z = (5.1 * Math.sin(phi) * Math.sin(theta));
+                const y = (5.1 * Math.cos(phi));
+                
+                const marker = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.12, 16, 16),
+                    new THREE.MeshBasicMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.8 })
+                );
+                marker.position.set(x, y, z);
+                marker.userData = { country: m.country };
+                earth.add(marker);
+                markerMeshes.push(marker);
+            });
+            
+            scene.add(new THREE.AmbientLight(0x404040, 0.5));
+            scene.add(new THREE.DirectionalLight(0xffffff, 1).position.set(10, 10, 10));
+            
+            camera.position.z = 15;
+            
+            let isDragging = false, prevPos = { x: 0, y: 0 };
+            container.addEventListener('mousedown', e => { isDragging = true; prevPos = { x: e.clientX, y: e.clientY }; });
+            container.addEventListener('mousemove', e => {
+                if (isDragging) {
+                    earth.rotation.y += (e.clientX - prevPos.x) * 0.005;
+                    earth.rotation.x += (e.clientY - prevPos.y) * 0.005;
+                    prevPos = { x: e.clientX, y: e.clientY };
+                }
+            });
+            container.addEventListener('mouseup', () => isDragging = false);
+            
+            container.addEventListener('click', e => {
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(markerMeshes);
+                if (intersects.length > 0) showModal(intersects[0].object.userData.country);
+            });
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                if (!isDragging) earth.rotation.y += 0.001;
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+        
+        // ==================== 新闻数据 ====================
         function generateNewsData() {
             const flags = { china: '🇨🇳', usa: '🇺🇸', uk: '🇬🇧', japan: '🇯🇵', germany: '🇩🇪', france: '🇫🇷', russia: '🇷🇺', singapore: '🇸🇬' };
             const names = { china: '中国', usa: '美国', uk: '英国', japan: '日本', germany: '德国', france: '法国', russia: '俄罗斯', singapore: '新加坡' };
@@ -508,62 +730,28 @@
             });
             return data;
         }
-
-        currentNewsData = generateNewsData();
         
-        function countTotalNews(data) {
-            const counts = {};
-            Object.keys(data).forEach(country => {
-                let total = 0;
-                Object.values(data[country].agencies).forEach(news => total += news.length);
-                counts[country] = total;
-            });
-            return counts;
-        }
-
-        previousNewsCounts = countTotalNews(currentNewsData);
-
+        currentNewsData = generateNewsData();
+        previousNewsCounts = Object.fromEntries(
+            Object.entries(currentNewsData).map(([k, v]) => [k, Object.values(v.agencies).reduce((a, b) => a + b.length, 0)])
+        );
+        
         function refreshNews() {
             const btn = document.getElementById('refreshBtn');
-            const toast = document.getElementById('updateToast');
-            const updateList = document.getElementById('updateList');
-            
             btn.classList.add('spinning');
             btn.disabled = true;
             
             setTimeout(() => {
-                const newData = generateNewsData();
-                const newCounts = countTotalNews(newData);
-                const updates = [];
-                
-                Object.keys(newCounts).forEach(country => {
-                    const oldCount = previousNewsCounts[country] || 0;
-                    const diff = newCounts[country] - oldCount;
-                    if (diff !== 0) {
-                        updates.push({ country: currentNewsData[country].name, flag: currentNewsData[country].flag, diff, newCount: newCounts[country] });
-                    }
-                });
-                
-                currentNewsData = newData;
-                previousNewsCounts = newCounts;
-                
-                if (updates.length > 0) {
-                    updateList.innerHTML = updates.map(u => `<li>${u.flag} ${u.country}: ${u.diff > 0 ? '+' : ''}${u.diff}条 (共${u.newCount}条)</li>`).join('');
-                } else {
-                    updateList.innerHTML = '<li>所有通讯社数据已是最新</li>';
-                }
-                
+                currentNewsData = generateNewsData();
                 btn.classList.remove('spinning');
                 btn.disabled = false;
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 5000);
             }, 1500);
         }
-
+        
         function toggleAgency(header) {
             header.parentElement.classList.toggle('open');
         }
-
+        
         function showModal(country) {
             const data = currentNewsData[country];
             if (!data) return;
@@ -605,190 +793,12 @@
             document.getElementById('newsModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-
+        
         function closeModal() {
             document.getElementById('newsModal').classList.remove('active');
             document.body.style.overflow = '';
         }
-
-        function initEarth() {
-            const container = document.getElementById('earth-container');
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
-            
-            const geometry = new THREE.SphereGeometry(5, 64, 64);
-            
-            // 地球纹理加载方案 - 国内优先
-            const textureLoader = new THREE.TextureLoader();
-            
-            // 备用Canvas纹理
-            const canvas = document.createElement('canvas');
-            canvas.width = 2048;
-            canvas.height = 1024;
-            const ctx = canvas.getContext('2d');
-            const oceanGrad = ctx.createLinearGradient(0, 0, 0, 1024);
-            oceanGrad.addColorStop(0, '#1a365d');
-            oceanGrad.addColorStop(0.5, '#0d2847');
-            oceanGrad.addColorStop(1, '#1a365d');
-            ctx.fillStyle = oceanGrad;
-            ctx.fillRect(0, 0, 2048, 1024);
-            ctx.fillStyle = '#2d4a1e';
-            const continents = [
-                {x: 1400, y: 360, r: 280}, {x: 1080, y: 200, r: 120}, {x: 1100, y: 480, r: 160},
-                {x: 400, y: 320, r: 200}, {x: 560, y: 720, r: 140}, {x: 1700, y: 720, r: 100}
-            ];
-            continents.forEach(c => {
-                ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fill();
-            });
-            const fallbackTexture = new THREE.CanvasTexture(canvas);
-            
-            // 初始化材质（先用备用纹理）
-            const material = new THREE.MeshPhongMaterial({
-                map: fallbackTexture,
-                emissive: 0x111827,
-                emissiveIntensity: 0.2,
-                shininess: 25
-            });
-            
-            // 尝试多个国内CDN源
-            const cdnSources = [
-                // 字节跳动 CDN
-                'https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg',
-                // 360 CDN
-                'https://lib.baomitu.com/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg',
-                // npmmirror
-                'https://registry.npmmirror.com/three/0.160.0/files/examples/textures/planets/earth_atmos_2048.jpg',
-                // bootcdn
-                'https://cdn.bootcdn.net/ajax/libs/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg'
-            ];
-            
-            let currentSource = 0;
-            
-            function tryLoadTexture() {
-                if (currentSource >= cdnSources.length) {
-                    console.log('所有CDN源都失败，使用Canvas备用纹理');
-                    return;
-                }
-                
-                const url = cdnSources[currentSource];
-                console.log(`尝试加载: ${url}`);
-                
-                textureLoader.load(
-                    url,
-                    function(texture) {
-                        console.log('✅ 纹理加载成功');
-                        material.map = texture;
-                        material.needsUpdate = true;
-                    },
-                    undefined,
-                    function(err) {
-                        console.log(`❌ 加载失败: ${url}`);
-                        currentSource++;
-                        tryLoadTexture();
-                    }
-                );
-            }
-            
-            tryLoadTexture();
-            
-            const earth = new THREE.Mesh(geometry, material);
-            scene.add(earth);
-            
-            // 大气层（科技风青色）
-            const atmosphere = new THREE.Mesh(
-                new THREE.SphereGeometry(5.3, 64, 64),
-                new THREE.MeshPhongMaterial({
-                    color: 0x00f0ff,
-                    transparent: true,
-                    opacity: 0.15,
-                    side: THREE.BackSide
-                })
-            );
-            scene.add(atmosphere);
-            
-            // 星空
-            const stars = new THREE.Points(
-                new THREE.BufferGeometry().setAttribute('position', 
-                    new THREE.Float32BufferAttribute(Array.from({length: 1500}, () => (Math.random() - 0.5) * 100), 3)
-                ),
-                new THREE.PointsMaterial({ size: 0.08, color: 0x00f0ff, transparent: true, opacity: 0.6 })
-            );
-            scene.add(stars);
-            
-            // 标记点
-            const markers = [
-                { country: 'china', lat: 35.8617, lon: 104.1954 },
-                { country: 'usa', lat: 37.0902, lon: -95.7129 },
-                { country: 'uk', lat: 55.3781, lon: -3.4360 },
-                { country: 'japan', lat: 36.2048, lon: 138.2529 },
-                { country: 'germany', lat: 51.1657, lon: 10.4515 },
-                { country: 'france', lat: 46.2276, lon: 2.2137 },
-                { country: 'russia', lat: 61.5240, lon: 105.3188 },
-                { country: 'singapore', lat: 1.3521, lon: 103.8198 }
-            ];
-            
-            const markerMeshes = [];
-            markers.forEach(m => {
-                const phi = (90 - m.lat) * Math.PI / 180;
-                const theta = (m.lon + 180) * Math.PI / 180;
-                const x = -(5.1 * Math.sin(phi) * Math.cos(theta));
-                const z = (5.1 * Math.sin(phi) * Math.sin(theta));
-                const y = (5.1 * Math.cos(phi));
-                
-                const marker = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.12, 16, 16),
-                    new THREE.MeshBasicMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.8 })
-                );
-                marker.position.set(x, y, z);
-                marker.userData = { country: m.country };
-                earth.add(marker);
-                markerMeshes.push(marker);
-            });
-            
-            scene.add(new THREE.AmbientLight(0x404040, 0.5));
-            scene.add(new THREE.DirectionalLight(0xffffff, 1).position.set(10, 10, 10));
-            
-            camera.position.z = 15;
-            
-            let isDragging = false, prevPos = { x: 0, y: 0 };
-            
-            container.addEventListener('mousedown', e => { isDragging = true; prevPos = { x: e.clientX, y: e.clientY }; });
-            container.addEventListener('mousemove', e => {
-                if (isDragging) {
-                    earth.rotation.y += (e.clientX - prevPos.x) * 0.005;
-                    earth.rotation.x += (e.clientY - prevPos.y) * 0.005;
-                    prevPos = { x: e.clientX, y: e.clientY };
-                }
-            });
-            container.addEventListener('mouseup', () => isDragging = false);
-            
-            container.addEventListener('click', e => {
-                const raycaster = new THREE.Raycaster();
-                const mouse = new THREE.Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(markerMeshes);
-                if (intersects.length > 0) showModal(intersects[0].object.userData.country);
-            });
-            
-            function animate() {
-                requestAnimationFrame(animate);
-                if (!isDragging) earth.rotation.y += 0.001;
-                renderer.render(scene, camera);
-            }
-            animate();
-            
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }
-
+        
         function initCharts() {
             const chart = echarts.init(document.getElementById('gdpChart'));
             chart.setOption({
@@ -801,12 +811,17 @@
             });
             window.addEventListener('resize', () => chart.resize());
         }
-
+        
+        // ==================== 初始化 ====================
+        setTimeout(() => {
+            document.getElementById('loading').classList.add('hidden');
+        }, 3000);
+        
         window.addEventListener('load', () => {
-            try { initEarth(); } catch(e) { console.error(e); }
-            try { initCharts(); } catch(e) { console.error(e); }
+            try { initEarth(); } catch(e) { console.error('Earth init failed:', e); }
+            try { initCharts(); } catch(e) { console.error('Chart init failed:', e); }
         });
-
+        
         document.getElementById('newsModal').addEventListener('click', e => { if (e.target.id === 'newsModal') closeModal(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
         document.querySelectorAll('a[href^="#"]').forEach(a => {
