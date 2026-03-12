@@ -623,75 +623,78 @@
             
             const geometry = new THREE.SphereGeometry(5, 64, 64);
             
-            // 加载高德卫星影像作为纹理（国内可访问）
+            // 地球纹理加载方案 - 国内优先
             const textureLoader = new THREE.TextureLoader();
             
-            // 使用高德的卫星瓦片服务（拼接成完整地球纹理）
-            // 先创建Canvas备用纹理（避免黑屏）
+            // 备用Canvas纹理
             const canvas = document.createElement('canvas');
             canvas.width = 2048;
             canvas.height = 1024;
             const ctx = canvas.getContext('2d');
-            
-            // 绘制基础海洋
             const oceanGrad = ctx.createLinearGradient(0, 0, 0, 1024);
             oceanGrad.addColorStop(0, '#1a365d');
             oceanGrad.addColorStop(0.5, '#0d2847');
             oceanGrad.addColorStop(1, '#1a365d');
             ctx.fillStyle = oceanGrad;
             ctx.fillRect(0, 0, 2048, 1024);
-            
-            // 绘制简化大陆
             ctx.fillStyle = '#2d4a1e';
             const continents = [
-                {x: 1400, y: 360, r: 280}, // 亚洲
-                {x: 1080, y: 200, r: 120}, // 欧洲
-                {x: 1100, y: 480, r: 160}, // 非洲
-                {x: 400, y: 320, r: 200},  // 北美
-                {x: 560, y: 720, r: 140},  // 南美
-                {x: 1700, y: 720, r: 100}  // 澳洲
+                {x: 1400, y: 360, r: 280}, {x: 1080, y: 200, r: 120}, {x: 1100, y: 480, r: 160},
+                {x: 400, y: 320, r: 200}, {x: 560, y: 720, r: 140}, {x: 1700, y: 720, r: 100}
             ];
             continents.forEach(c => {
-                ctx.beginPath();
-                ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fill();
             });
-            
             const fallbackTexture = new THREE.CanvasTexture(canvas);
             
-            // 尝试加载真实的地球纹理
-            // 使用国内可访问的unpkg或npmmirror镜像
-            const earthTexture = textureLoader.load(
-                'https://registry.npmmirror.com/three/0.160.0/files/examples/textures/planets/earth_atmos_2048.jpg',
-                function(texture) {
-                    console.log('✅ 纹理加载成功');
-                    material.map = texture;
-                    material.needsUpdate = true;
-                },
-                undefined,
-                function(err) {
-                    console.log('⚠️ npmmirror失败，尝试其他源');
-                    // 尝试bootcdn
-                    textureLoader.load(
-                        'https://cdn.bootcdn.net/ajax/libs/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg',
-                        function(texture) {
-                            material.map = texture;
-                            material.needsUpdate = true;
-                        },
-                        undefined,
-                        function() {
-                            console.log('使用Canvas备用纹理');
-                        }
-                    );
-                }
-            );
-            
+            // 初始化材质（先用备用纹理）
             const material = new THREE.MeshPhongMaterial({
                 map: fallbackTexture,
                 emissive: 0x111827,
                 emissiveIntensity: 0.2,
                 shininess: 25
             });
+            
+            // 尝试多个国内CDN源
+            const cdnSources = [
+                // 字节跳动 CDN
+                'https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg',
+                // 360 CDN
+                'https://lib.baomitu.com/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg',
+                // npmmirror
+                'https://registry.npmmirror.com/three/0.160.0/files/examples/textures/planets/earth_atmos_2048.jpg',
+                // bootcdn
+                'https://cdn.bootcdn.net/ajax/libs/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg'
+            ];
+            
+            let currentSource = 0;
+            
+            function tryLoadTexture() {
+                if (currentSource >= cdnSources.length) {
+                    console.log('所有CDN源都失败，使用Canvas备用纹理');
+                    return;
+                }
+                
+                const url = cdnSources[currentSource];
+                console.log(`尝试加载: ${url}`);
+                
+                textureLoader.load(
+                    url,
+                    function(texture) {
+                        console.log('✅ 纹理加载成功');
+                        material.map = texture;
+                        material.needsUpdate = true;
+                    },
+                    undefined,
+                    function(err) {
+                        console.log(`❌ 加载失败: ${url}`);
+                        currentSource++;
+                        tryLoadTexture();
+                    }
+                );
+            }
+            
+            tryLoadTexture();
             
             const earth = new THREE.Mesh(geometry, material);
             scene.add(earth);
